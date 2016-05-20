@@ -75,7 +75,7 @@ class AsaConfigurator(common.Plugin):
         if set([x for x in allhosts if allhosts.count(x) > 1]):
              raise errors.PluginError("Don't specify a host more than once.")
 
-        # Collect permission bits from the asa credentials file
+        # Collect file permission bits from the asa credentials file
         try:
             st = os.stat(self.credfile)
         except IOError as e:
@@ -246,7 +246,6 @@ class AsaConfigurator(common.Plugin):
     @staticmethod
     def view_config_changes():
         """No ability to preview configs"""
-        print "view_config_changes()"
         raise errors.NotSupportedError(
             'No ability to preview configs')
 
@@ -257,7 +256,6 @@ class AsaConfigurator(common.Plugin):
     @staticmethod
     def supported_enhancements():
         """Returns a list of supported enhancements."""
-        print ("supported_enhancements()")
         return []
 
     @staticmethod
@@ -274,7 +272,6 @@ class AsaConfigurator(common.Plugin):
     @staticmethod
     def enhance(unused_domain, unused_enhancement, unused_options=None):
         """No enhancements are supported now."""
-        print ("enhance()")
         raise errors.NotSupportedError('No enhancements are supported now.')
 
     def save(self, unused_title=None, temporary=False):
