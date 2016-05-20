@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 install_requires = [
     'acme',
-    'certbot',
+    'certbot>=0.5.0',
     'zope.interface',
 ]
 

@@ -21,17 +21,16 @@ logger = logging.getLogger(__name__)
 
 class AsaConfigurator(common.Plugin):
     """ASA Configurator."""
-    zope.interface.implements(interfaces.IAuthenticator)
+    zope.interface.implements(interfaces.IAuthenticator, interfaces.IInstaller)
     zope.interface.classProvides(interfaces.IPluginFactory)
 
-    description = "DVSNI Authentication via Cisco ASA REST API"
+    description = "DVSNI Authentication/Installation via Cisco ASA REST API"
 
     @classmethod
     def add_parser_arguments(cls, add):
-        print "add_parser_arguments\n"									# delete me
+        print "add_parser_arguments"									# delete me
         add("host", help="ASA host", required=True, action='append', default=[])
         add("chost", help="ASA challenge host, specify multiple times", action='append', default=[])
-#        add("credfile", help="ASA credentials file", default=os.path.join(cls.config.work_dir, 'asa_creds.txt'))
         add("credfile", help="ASA credentials file, defaults to <config-dir>/asa_creds.txt")
         add("creddelim", help="ASA credentials file delimiter", default=';')
         add("interface", help="Attach new certificate to interface, rather than domain")
@@ -40,12 +39,9 @@ class AsaConfigurator(common.Plugin):
 
 
     def __init__(self, *args, **kwargs):
-        print "__init__\n"									# delete me
+        print "__init__"									# delete me
         """Initialize an ASA Authenticator."""
         super(AsaConfigurator, self).__init__(*args, **kwargs)
-
-#        if not self.conf('credfile'):
-#            self.conf('credfile') = os.path.join(self.config.work_dir, 'asa_creds.txt')
 
         # credfile lives in self.credfile rather than self.conf('credfile')
         # because I couldn't figure out how collect work_dir in
@@ -66,11 +62,12 @@ class AsaConfigurator(common.Plugin):
 
     # This is called in determine_authenticator and determine_installer
     def prepare(self):
+        print "configurator.prepare"
         import os
         import os.path
         import stat
         from pprint import pprint as pp
-        print "prepare\n"									# delete me
+        print "prepare"									# delete me
         """Prepare the authenticator/installer."""
 
         # Each host and chost should appear once. No duplicates.
@@ -158,7 +155,6 @@ class AsaConfigurator(common.Plugin):
         pass
 
     def get_chall_pref(self, domain):
-        print "get_chall_pref\n"									# delete me
         """Return list of challenge preferences.
 
         :param str domain: Domain for which challenge preferences are sought.
@@ -174,7 +170,7 @@ class AsaConfigurator(common.Plugin):
 
     def perform(self, achalls):
         from pprint import pprint as pp
-        print "perform\n"									# delete me
+        print "begin configurator.perform"				# delete me
         """Perform the given challenge.
 
         :param list achalls: Non-empty (guaranteed) list of
@@ -204,21 +200,9 @@ class AsaConfigurator(common.Plugin):
 
         for i, achall in enumerate(achalls):
             responses.append(None)
-
-            print ("achall is type: "+str(type(i)))
-#            print ("calling asa_dvsni.add_chall")
             asa_dvsni.add_chall(achall, i)
-#            print ("done asa_dvsni.add_chall")
 
-#        print ("calling asa_dvsni.perform")
-#        print (type(self.asa))
-#        print (type(self.asa.values()))
-#        print (type(self.asa.values()[0]))
-#        for key, value in self.asa.iteritems():
-#            pp (key)
-#            pp (value)
         sni_response = asa_dvsni.perform(list(self.asa.values()))
-        print ("done asa_dvsni.perform")
 
         # Go through all of the challenges and assign them to the proper place
         # in the responses return value. All responses must be in the same order
@@ -226,10 +210,10 @@ class AsaConfigurator(common.Plugin):
         for i, resp in enumerate(sni_response):
             responses[asa_dvsni.indices[i]] = resp
 
+        print "done configurator.perform"				# delete me
         return responses
 
     def cleanup(self, achalls):
-        print "cleanup\n"									# delete me
         """Revert changes and shutdown after challenges complete.
 
         :param list achalls: Non-empty (guaranteed) list of
@@ -239,11 +223,78 @@ class AsaConfigurator(common.Plugin):
         :raises PluginError: if original configuration cannot be restored
 
         """
+        print "begin configurator.cleanup"				# delete me
+        asa_dvsni = dvsni.AsaDvsni(self)
+        for i, achall in enumerate(achalls):
+            asa_dvsni.add_chall(achall, i)
+        cleanup_response = asa_dvsni.cleanup(list(self.asa.values()))
+        print "end configurator.cleanup"				# delete me
 
     def more_info(self):
-        print "more_info\n"									# delete me
+        print "more_info"									# delete me
         """Human-readable string to help understand the module"""
         return (
             "Uses an external shell script to authenticate and deploy "
             "certificates.{0}"
         )
+
+    def get_all_names(self):
+        """Returns all names that may be authenticated."""
+        print "get_all_names()"
+        return []
+
+    @staticmethod
+    def view_config_changes():
+        """No ability to preview configs"""
+        print "view_config_changes()"
+        raise errors.NotSupportedError(
+            'No ability to preview configs')
+
+    def deploy_cert(self, domain, cert_path, key_path, chain_path=None, fullchain_path=None):
+        """Initialize deploy certificate in ASA via REST API."""
+        print ("deploy_cert()")
+
+    @staticmethod
+    def supported_enhancements():
+        """Returns a list of supported enhancements."""
+        print ("supported_enhancements()")
+        return []
+
+    @staticmethod
+    def config_test():
+        """Plesk configuration is always valid."""
+        print ("config_test()")
+        pass  # pragma: no cover
+
+    def recovery_routine(self):
+        """Revert deployer changes."""
+        print ("recovery_routine()")
+        pass  # pragma: no cover
+
+    @staticmethod
+    def enhance(unused_domain, unused_enhancement, unused_options=None):
+        """No enhancements are supported now."""
+        print ("enhance()")
+        raise errors.NotSupportedError('No enhancements are supported now.')
+
+    def save(self, unused_title=None, temporary=False):
+        """Push Plesk to deploy certificate."""
+        print ("save()")
+        pass  # pragma: no cover
+
+    @staticmethod
+    def rollback_checkpoints(unused_rollback=1):
+        """Revert deployer state to the previous."""
+        print ("rollback_checkpoints()")
+        raise errors.NotSupportedError()
+
+    @staticmethod
+    def get_all_certs_keys():
+        """No ability to retrieve certificate data from Plesk."""
+        print ("get_all_certs_keys()")
+        return []
+
+    def restart(self):
+        """Web server has already restarted. Cleanup only."""
+        print ("restart()")
+        pass

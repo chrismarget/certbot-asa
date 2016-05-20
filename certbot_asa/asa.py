@@ -3,10 +3,6 @@
 from certbot import errors
 from certbot.plugins import common
 
-from pprint import pprint as pp
-
-#logger = logging.getLogger(__name__)
-
 
 class RestAsa(common.TLSSNI01):
     """Class talks to ASA via REST API"""
@@ -35,6 +31,7 @@ class RestAsa(common.TLSSNI01):
 #
 #    """
 
+
     def livetest(self):
         """Test TCP connect to REST API port 443"""
         import socket
@@ -47,27 +44,98 @@ class RestAsa(common.TLSSNI01):
 		s.close()
 		return False
 
-    def ImportP12(self, trustpoint, P12String, PassPhrase):
-        """Install P12 package on an ASA"""
-        from pprint import pprint as pp
+    def clear_p12(self, trustpoint):
+        """Remove P12 package from ASA"""
         import base64
         import json
         import urllib2
         import ssl
-        print "importing certificate to "+self.host+" trustpoint "+trustpoint+" with password "+PassPhrase+" and selfsigned:"+str(self.selfsigned)
+        print "removing from "+self.host+" trustpoint "+trustpoint+" with selfsigned: "+str(self.selfsigned)
 
+        headers = {'Content-Type': 'application/json'}
+        api_path = "/api/certificate/identity/"+trustpoint
+        url = "https://"+self.host+api_path
+
+        req = urllib2.Request(url, None, headers)
+        base64string = base64.encodestring('%s:%s' % (self.user, self.passwd)).replace('\n', '')
+        req.add_header("Authorization", "Basic %s" % base64string)   
+        req.get_method = lambda: 'DELETE'
+
+        f = None
+        if self.selfsigned:
+            try:
+                f = urllib2.urlopen(req, context=ssl._create_unverified_context(), timeout=30)
+                status_code = f.getcode()
+            except ssl.CertificateError, err:
+                if f: f.close()
+                return [False, err]
+            except Exception as err:
+                if f: f.close()
+                return [False, err]
+        else:
+            try:
+                f = urllib2.urlopen(req, context=ssl.create_default_context(), timeout=30)
+                status_code = f.getcode()
+            except Exception as err:
+                if f: f.close()
+                return [False, err]
+        return
+
+    def clear_keypair(self, keypair_name):
+        """Remove crypto keypair from ASA"""
+        import base64
+        import json
+        import urllib2
+        import ssl
+        print "removing from "+self.host+" keypair "+keypair_name+" with selfsigned: "+str(self.selfsigned)
+
+        headers = {'Content-Type': 'application/json'}
+        api_path = "/api/certificate/keypair/"+keypair_name
+        url = "https://"+self.host+api_path
+
+        req = urllib2.Request(url, None, headers)
+        base64string = base64.encodestring('%s:%s' % (self.user, self.passwd)).replace('\n', '')
+        req.add_header("Authorization", "Basic %s" % base64string)   
+        req.get_method = lambda: 'DELETE'
+
+        f = None
+        if self.selfsigned:
+            try:
+                f = urllib2.urlopen(req, context=ssl._create_unverified_context(), timeout=30)
+                status_code = f.getcode()
+            except ssl.CertificateError, err:
+                if f: f.close()
+                return [False, err]
+            except Exception as err:
+                if f: f.close()
+                return [False, err]
+        else:
+            try:
+                f = urllib2.urlopen(req, context=ssl.create_default_context(), timeout=30)
+                status_code = f.getcode()
+            except Exception as err:
+                if f: f.close()
+                return [False, err]
+        return
+
+
+    def import_p12(self, trustpoint, P12String, PassPhrase):
+        """Install P12 package on an ASA"""
+        import base64
+        import json
+        import urllib2
+        import ssl
+        print "importing certificate to "+self.host+" trustpoint "+trustpoint+" with selfsigned: "+str(self.selfsigned)
 
         headers = {'Content-Type': 'application/json'}
         api_path = "/api/certificate/identity"
         url = "https://"+self.host+api_path
-        print 'url = "'+url+'"'
 
         post_data = {}
         post_data["certPass"] = PassPhrase
         post_data["kind"] = "object#IdentityCertificate"
         post_data["certText"] = ["-----BEGIN PKCS12-----"]+P12String.splitlines()+["-----END PKCS12-----"]
         post_data["name"] = trustpoint
-        pp(post_data)
 
         req = urllib2.Request(url, json.dumps(post_data), headers)
         base64string = base64.encodestring('%s:%s' % (self.user, self.passwd)).replace('\n', '')
@@ -75,67 +143,27 @@ class RestAsa(common.TLSSNI01):
 
         f = None
         if self.selfsigned:
-            print "selfsigned okay"
             try:
                 f = urllib2.urlopen(req, context=ssl._create_unverified_context(), timeout=30)
                 status_code = f.getcode()
-                print "Unverified Status code is "+str(status_code)
             except ssl.CertificateError, err:
-                print "SSL error"
                 if f: f.close()
                 return [False, err]
             except Exception as err:
-                print "other error"
-                pp(err.reason)
                 if f: f.close()
                 return [False, err]
         else:
-            print "doing ssl validation"
             try:
                 f = urllib2.urlopen(req, context=ssl.create_default_context(), timeout=30)
                 status_code = f.getcode()
-                print "Verified Status code is "+str(status_code)
             except Exception as err:
                 if f: f.close()
                 return [False, err]
         return
 
-    def cleanup(self, trustpoint):
-        import base64
-        import json
-        import urllib2
-        import ssl
-        headers = {'Content-Type': 'application/json'}
-        api_path = "/api"
-#        url = "https://"+self.host+api_path
-        url = "https://test-asa/apa"
-        f = None
 
-        post_data = [
-          {     
-            "resourceUri": "/api/certificate/identity/"+trustpoint,
-            "method": "Delete"
-          },
-          {     
-            "resourceUri": "/api/certificate/keypair/"+trustpoint,
-            "method": "Delete"
-          }
-        ]
-        req = urllib2.Request(url, json.dumps(post_data), headers)
-        base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-        req.add_header("Authorization", "Basic %s" % base64string)   
-        try:
-            f  = urllib2.urlopen(req)
-            status_code = f.getcode()
-        except Exception as err:
-                if f: f.close()
-                return [False, err]
-        finally:
-            if f:  f.close()
-        return
-
-    def SetSniSelector(self, z_domain, trustpoint):
-        """Test ASA credentials"""
+    def Activate_SNI(self, z_domain, trustpoint):
+        """Install SNI challenge certificate"""
         import base64
         import json
         import urllib2
@@ -150,7 +178,6 @@ class RestAsa(common.TLSSNI01):
         req = urllib2.Request(url, json.dumps(post_data), headers)
         base64string = base64.encodestring('%s:%s' % (self.user, self.passwd)).replace('\n', '')
         req.add_header("Authorization", "Basic %s" % base64string)
-        print "ssl trust-point "+trustpoint+" domain "+z_domain
         if self.selfsigned:
             try:
                 f = urllib2.urlopen(req, context=ssl._create_unverified_context(), timeout=30)

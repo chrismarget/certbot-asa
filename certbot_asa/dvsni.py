@@ -31,22 +31,34 @@ class AsaDvsni(common.TLSSNI01):
 
     """
 
-#    def install_cert(self, asa, p12):
-#        return
+#    def check_for_dup_certs(self):
+#        import OpenSSL.crypto
+#        certs = []
+#        print ("---achalls in check_for_dup_certs----")
+#        for achall in self.achalls:
+#            print(str(achall))
+#            c = open(self.get_cert_path(achall), 'rt').read()
+#            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, c)
+#            i = ['SN', cert.get_serial_number()]
+#            for a in cert.get_issuer().get_components():
+#                i += list(a)
+#            certs.append(tuple(i))
+#        if len(certs) == len(set(certs)):
+#            return False
+#        return True
 
-    def check_for_dup_certs(self):
-        import OpenSSL.crypto
-        certs = []
+    def cleanup(self, asa):
+        import hashlib
+        """Delete DVSNI challenge certificates/keys from ASA"""
+        print "begin dvsni.cleanup"
         for achall in self.achalls:
-            c = open(self.get_cert_path(achall), 'rt').read()
-            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, c)
-            i = ['SN', cert.get_serial_number()]
-            for a in cert.get_issuer().get_components():
-                i += list(a)
-            certs.append(tuple(i))
-        if len(certs) == len(set(certs)):
-            return False
-        return True
+            z_domain_hash = hashlib.md5(achall.response(achall.account_key).z_domain)
+            trustpoint_name = "acme_challenge_"+z_domain_hash.hexdigest()
+            for a in asa:
+                a.clear_p12(trustpoint_name)
+                a.clear_keypair(trustpoint_name)
+#                a.Activate_SNI(achall.response(achall.account_key).z_domain, trustpoint_name)
+        print "end dvsni.cleanup"
 
     def perform(self, asa):
         """Perform a DVSNI challenge using Cisco ASA.
@@ -55,48 +67,36 @@ class AsaDvsni(common.TLSSNI01):
         :rtype: list
 
         """
-        from pprint import pprint as pp
         import base64
+        import hashlib
         import OpenSSL.crypto
         import time
-        import string
-        import random
-
-        print "Dup certs? "+str(self.check_for_dup_certs())
+#        import string
+#        import random
 
         if not self.achalls:
             return []
-
-        check_for_dup_certs
 
         # Basename for challenge response trustpoints on ASA boxes.
         TpBaseName = "acme_challenge_"+str(int(time.time()))+"_"
 
         # Create challenge certs
         responses = [self._setup_challenge_cert(x) for x in self.achalls]
-#        pp(["responses: ",responses])
 
-        s = string.ascii_letters + string.digits
-        i = 0
+#        print "Dup certs? "+str(self.check_for_dup_certs())
+
         for achall in self.achalls:
-#            P12PassPhrase = ''.join(random.choice(s) for i in range (10))
-            P12PassPhrase = 'foo'
-            c=open(self.get_cert_path(achall), 'rt').read()
-            k=open(self.get_key_path(achall), 'rt').read()
-            cert=OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, c)
-            key=OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, k)
-            p12=OpenSSL.crypto.PKCS12()
+            c = open(self.get_cert_path(achall), 'rt').read()
+            k = open(self.get_key_path(achall), 'rt').read()
+            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, c)
+            key = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, k)
+            p12 = OpenSSL.crypto.PKCS12()
             p12.set_certificate(cert)
             p12.set_privatekey(key)
-            b64string=base64.encodestring(p12.export(passphrase=P12PassPhrase))
-#            print "crypto ca import "+TpBaseName+str(i)+" pkcs12 "+P12PassPhrase
-#            print b64string
-            pp(["I have a P12 challenge response structure for: ",achall.response(achall.account_key).z_domain])
+            z_domain_hash = hashlib.md5(achall.response(achall.account_key).z_domain)
+            b64string = base64.encodestring(p12.export(passphrase = z_domain_hash.hexdigest()))
+            trustpoint_name = "acme_challenge_"+z_domain_hash.hexdigest()
             for a in asa:
-                a.ImportP12(TpBaseName+str(i), b64string, P12PassPhrase)
-                a.SetSniSelector(achall.response(achall.account_key).z_domain, TpBaseName+str(i))
-            i += 1
-#            print(b64string)
-#        time.sleep(100)
+                a.import_p12(trustpoint_name, b64string, z_domain_hash.hexdigest())
+                a.Activate_SNI(achall.response(achall.account_key).z_domain, trustpoint_name)
         return responses
-
