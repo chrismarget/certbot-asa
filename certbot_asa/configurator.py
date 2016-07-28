@@ -29,7 +29,7 @@ class AsaConfigurator(common.Plugin):
     @classmethod
     def add_parser_arguments(cls, add):
         print "add_parser_arguments"									# delete me
-        add("host", help="ASA host", required=True, action='append', default=[])
+        add("host", help="ASA host", action='append', default=[])
         add("chost", help="ASA challenge host, specify multiple times", action='append', default=[])
         add("credfile", help="ASA credentials file, defaults to <config-dir>/asa_creds.txt")
         add("creddelim", help="ASA credentials file delimiter", default=';')
@@ -39,6 +39,8 @@ class AsaConfigurator(common.Plugin):
 
 
     def __init__(self, *args, **kwargs):
+        from pprint import pprint as pp
+        pp(args[1])
         print "__init__"									# delete me
         """Initialize an ASA Authenticator."""
         super(AsaConfigurator, self).__init__(*args, **kwargs)
@@ -55,6 +57,7 @@ class AsaConfigurator(common.Plugin):
 
         self.asa = {}
         self.asacreds = {}
+        self.argprefix=args[1]
 
         # Set up reverter
         self.reverter = reverter.Reverter(self.config)
@@ -70,6 +73,13 @@ class AsaConfigurator(common.Plugin):
         print "prepare"									# delete me
         """Prepare the authenticator/installer."""
 
+        # Ensure that we've got at least one 'host' to work with. It's not
+        # specified as 'required=True' for argparse because it's not reasonable
+        # for this plugin to require arguments when the plugin might not be
+        # in use.
+        if not self.conf('host'):
+             raise errors.PluginError("You haven't specified any ASAs for certificate installation. "
+                                      "Use: --%s-host <host>" % (self.argprefix))
         # Each host and chost should appear once. No duplicates.
         allhosts = self.conf('host') + self.conf('chost')
         if set([x for x in allhosts if allhosts.count(x) > 1]):
