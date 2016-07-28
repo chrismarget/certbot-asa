@@ -1,14 +1,17 @@
 from setuptools import setup
 from setuptools import find_packages
 
+version = '0.1.0'
+
 install_requires = [
     'acme',
-    'certbot',
+    'certbot>=0.7.0',
     'zope.interface',
 ]
 
 setup(
     name='certbot-asa',
+    version=version,
     description="Cisco ASA plugin for Let's Encrypt client",
     url='https://github.com/chrismarget/certbot-asa',
     author="Chris Marget",
@@ -18,7 +21,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'certbot.plugins': [
-            'asa = certbot_asa.configurator:AsaConfigurator',
+            'xxx = certbot_asa.configurator:AsaConfigurator',
         ],
     },
 )
