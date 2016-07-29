@@ -238,8 +238,8 @@ class AsaConfigurator(common.Plugin):
         print "more_info"									# delete me
         """Human-readable string to help understand the module"""
         return (
-            "Uses an external shell script to authenticate and deploy "
-            "certificates.{0}"
+            "Plugin responds to DVSNI01 challenges with, and installs "
+            "certificates to Cisco ASA via REST API."
         )
 
     def get_all_names(self):
