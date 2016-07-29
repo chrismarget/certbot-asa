@@ -31,22 +31,6 @@ class AsaDvsni(common.TLSSNI01):
 
     """
 
-#    def check_for_dup_certs(self):
-#        import OpenSSL.crypto
-#        certs = []
-#        print ("---achalls in check_for_dup_certs----")
-#        for achall in self.achalls:
-#            print(str(achall))
-#            c = open(self.get_cert_path(achall), 'rt').read()
-#            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, c)
-#            i = ['SN', cert.get_serial_number()]
-#            for a in cert.get_issuer().get_components():
-#                i += list(a)
-#            certs.append(tuple(i))
-#        if len(certs) == len(set(certs)):
-#            return False
-#        return True
-
     def cleanup(self, asa):
         import hashlib
         """Delete DVSNI challenge certificates/keys from ASA"""
