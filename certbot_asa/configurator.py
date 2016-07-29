@@ -39,8 +39,6 @@ class AsaConfigurator(common.Plugin):
 
 
     def __init__(self, *args, **kwargs):
-        from pprint import pprint as pp
-        pp(args[1])
         print "__init__"									# delete me
         """Initialize an ASA Authenticator."""
         super(AsaConfigurator, self).__init__(*args, **kwargs)
@@ -57,7 +55,7 @@ class AsaConfigurator(common.Plugin):
 
         self.asa = {}
         self.asacreds = {}
-        self.argprefix=args[1]
+        self.argprefix=''.join(["--",args[1],"-"])
 
         # Set up reverter
         self.reverter = reverter.Reverter(self.config)
@@ -67,10 +65,7 @@ class AsaConfigurator(common.Plugin):
     def prepare(self):
         print "configurator.prepare"
         import os
-        import os.path
         import stat
-        from pprint import pprint as pp
-        print "prepare"									# delete me
         """Prepare the authenticator/installer."""
 
         # Ensure that we've got at least one 'host' to work with. It's not
@@ -79,7 +74,7 @@ class AsaConfigurator(common.Plugin):
         # in use.
         if not self.conf('host'):
              raise errors.PluginError("You haven't specified any ASAs for certificate installation. "
-                                      "Use: --%s-host <host>" % (self.argprefix))
+                                      "Use: %shost <host>" % (self.argprefix))
         # Each host and chost should appear once. No duplicates.
         allhosts = self.conf('host') + self.conf('chost')
         if set([x for x in allhosts if allhosts.count(x) > 1]):
@@ -179,7 +174,6 @@ class AsaConfigurator(common.Plugin):
         return [challenges.TLSSNI01]
 
     def perform(self, achalls):
-        from pprint import pprint as pp
         print "begin configurator.perform"				# delete me
         """Perform the given challenge.
 
@@ -261,47 +255,59 @@ class AsaConfigurator(common.Plugin):
 
     def deploy_cert(self, domain, cert_path, key_path, chain_path=None, fullchain_path=None):
         """Initialize deploy certificate in ASA via REST API."""
-        print ("deploy_cert()")
+        print ("begin configurator.deploy_cert()")
+        print ("done configurator.deploy_cert()")
 
     @staticmethod
     def supported_enhancements():
         """Returns a list of supported enhancements."""
+        print ("begin configurator.staticmethod()")
+        print ("done configurator.staticmethod()")
         return []
 
     @staticmethod
     def config_test():
-        """Plesk configuration is always valid."""
-        print ("config_test()")
+        """Assume configuration is always valid."""
+        print ("begin configurator.config_test()")
+        print ("done configurator.config_test()")
         pass  # pragma: no cover
 
     def recovery_routine(self):
         """Revert deployer changes."""
-        print ("recovery_routine()")
+        print ("begin configurator.recovery_routine()")
+        print ("done configurator.recovery_routine()")
         pass  # pragma: no cover
 
     @staticmethod
     def enhance(unused_domain, unused_enhancement, unused_options=None):
         """No enhancements are supported now."""
+        print ("begin configurator.enhance()")
+        print ("done configurator.enhance()")
         raise errors.NotSupportedError('No enhancements are supported now.')
 
     def save(self, unused_title=None, temporary=False):
         """Push Plesk to deploy certificate."""
-        print ("save()")
+        print ("begin configurator.save()")
+        # todo: save the config here
+        print ("done configurator.save()")
         pass  # pragma: no cover
 
     @staticmethod
     def rollback_checkpoints(unused_rollback=1):
         """Revert deployer state to the previous."""
-        print ("rollback_checkpoints()")
+        print ("begin configurator.rollback_checkpoints()")
+        print ("done configurator.rollback_checkpoints()")
         raise errors.NotSupportedError()
 
     @staticmethod
     def get_all_certs_keys():
-        """No ability to retrieve certificate data from Plesk."""
-        print ("get_all_certs_keys()")
+        """No interest in retrieving certificate data from ASA."""
+        print ("begin configurator.get_all_certs_keys()")
+        print ("done configurator.get_all_certs_keys()")
         return []
 
     def restart(self):
-        """Web server has already restarted. Cleanup only."""
-        print ("restart()")
+        """Nothing to restart. ASA configuration is live when applied."""
+        print ("begin configurator.restart()")
+        print ("done configurator.restart()")
         pass
