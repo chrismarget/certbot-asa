@@ -1,6 +1,7 @@
 """AsaDVSNI"""
 import logging
 import time
+import OpenSSL.crypto
 
 from certbot import errors
 from certbot.plugins import common
@@ -9,6 +10,16 @@ from certbot_asa import asa
 
 logger = logging.getLogger(__name__)
 
+def make_p12(cert_file, key_file):
+    """Convert cert/key files to OpenSSL p12 object"""
+    c = open(cert_file, 'rt').read()
+    k = open(key_file, 'rt').read()
+    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, c)
+    key = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, k)
+    p12 = OpenSSL.crypto.PKCS12()
+    p12.set_certificate(cert)
+    p12.set_privatekey(key)
+    return p12
 
 class AsaDvsni(common.TLSSNI01):
     """Class performs DVSNI challenges within the Asa configurator.
@@ -70,13 +81,14 @@ class AsaDvsni(common.TLSSNI01):
 #        print "Dup certs? "+str(self.check_for_dup_certs())
 
         for achall in self.achalls:
-            c = open(self.get_cert_path(achall), 'rt').read()
-            k = open(self.get_key_path(achall), 'rt').read()
-            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, c)
-            key = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, k)
-            p12 = OpenSSL.crypto.PKCS12()
-            p12.set_certificate(cert)
-            p12.set_privatekey(key)
+            p12 = make_p12(self.get_cert_path(achall), self.get_key_path(achall))
+#            c = open(self.get_cert_path(achall), 'rt').read()
+#            k = open(self.get_key_path(achall), 'rt').read()
+#            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, c)
+#            key = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, k)
+#            p12 = OpenSSL.crypto.PKCS12()
+#            p12.set_certificate(cert)
+#            p12.set_privatekey(key)
             z_domain_hash = hashlib.md5(achall.response(achall.account_key).z_domain)
             b64string = base64.encodestring(p12.export(passphrase = z_domain_hash.hexdigest()))
             trustpoint_name = "acme_challenge_"+z_domain_hash.hexdigest()
