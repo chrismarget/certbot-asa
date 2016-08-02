@@ -18,6 +18,18 @@ from certbot_asa import asa
 
 logger = logging.getLogger(__name__)
 
+def ConcatenateFiles(files=[]):
+    """Returns filename for concatenation of input files"""
+    import os
+    import tempfile
+    if not files:
+        return None
+    fd, name = tempfile.mkstemp()
+    with os.fdopen(fd, 'w') as out:
+        for f in files:
+            with open(f) as infile:
+                out.write(infile.read())
+    return name
 
 class AsaConfigurator(common.Plugin):
     """ASA Configurator."""
@@ -35,7 +47,7 @@ class AsaConfigurator(common.Plugin):
         add("creddelim", help="ASA credentials file delimiter", default=';')
         add("interface", help="Attach new certificate to interface, rather than domain")
         add("untrusted", help="Ignore SSL errors when making REST calls to managed ASA boxes", action='store_true')
-
+        add("pemstore", help="Bundle of PEM-formatted trusted certificates" action='append', default=[])
 
 
     def __init__(self, *args, **kwargs):
