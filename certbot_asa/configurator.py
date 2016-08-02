@@ -257,6 +257,8 @@ class AsaConfigurator(common.Plugin):
         """Initialize deploy certificate in ASA via REST API."""
         from dvsni import make_p12
         p12 = make_p12(cert_path, key_path)
+        not_after = p12.get_certificate().get_notAfter()
+        not_before = p12.get_certificate().get_notBefore()
         print ("begin configurator.deploy_cert()")
         print (domain)
         print (cert_path)
