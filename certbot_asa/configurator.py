@@ -67,7 +67,9 @@ class AsaConfigurator(common.Plugin):
 
         self.asa = {}
         self.asacreds = {}
-        self.argprefix=''.join(["--",args[1],"-"])
+        self.argprefix = ''.join(["--",args[1],"-"])
+        self.castore = ConcatenateFiles(self.conf('pemstore'))
+        print(self.castore)
 
         # Set up reverter
         self.reverter = reverter.Reverter(self.config)
@@ -282,8 +284,8 @@ class AsaConfigurator(common.Plugin):
     @staticmethod
     def supported_enhancements():
         """Returns a list of supported enhancements."""
-        print ("begin configurator.staticmethod()")
-        print ("done configurator.staticmethod()")
+        print ("begin configurator.supported_enhancements()")
+        print ("done configurator.supported_enhancements()")
         return []
 
     @staticmethod
@@ -328,7 +330,9 @@ class AsaConfigurator(common.Plugin):
         return []
 
     def restart(self):
+        import os
         """Nothing to restart. ASA configuration is live when applied."""
         print ("begin configurator.restart()")
+        os.remove(self.castore)
         print ("done configurator.restart()")
         pass
