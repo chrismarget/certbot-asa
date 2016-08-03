@@ -163,7 +163,7 @@ class RestAsa(common.TLSSNI01):
 
 
     def Activate_SNI(self, z_domain, trustpoint):
-        """Install SNI challenge certificate"""
+        """Activate SNI challenge certificate"""
         import base64
         import json
         import urllib2

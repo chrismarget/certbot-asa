@@ -18,7 +18,20 @@ from certbot_asa import asa
 
 logger = logging.getLogger(__name__)
 
-def ConcatenateFiles(files=[]):
+#def get_trustpoints(asa, type=None, mode="https", verify=True, cacert=None):
+#    """Returns list of trustpoints of the specified type, or all trustpoints"""
+#    import requests
+#    trustpoints = []
+#    if type == "identity" or type == None:
+#        apiUrl = /api/certificate/identity
+#    r = requests.get('https://vpnlab1/api/certificate/identity', auth=('rest', 'xyz'), verify="/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt")
+#    
+#
+#    identityTrustpoints = []
+#    for i in range(len(r.json()['items'])):
+#        identityTrustpoints.append(r.json()['items'][i]['objectId'])
+
+def concatenate_files(files=[]):
     """Returns filename for concatenation of input files"""
     import os
     import tempfile
@@ -68,7 +81,7 @@ class AsaConfigurator(common.Plugin):
         self.asa = {}
         self.asacreds = {}
         self.argprefix = ''.join(["--",args[1],"-"])
-        self.castore = ConcatenateFiles(self.conf('pemstore'))
+        self.castore = concatenate_files(self.conf('pemstore'))
         print(self.castore)
 
         # Set up reverter
@@ -268,11 +281,21 @@ class AsaConfigurator(common.Plugin):
             'No ability to preview configs')
 
     def deploy_cert(self, domain, cert_path, key_path, chain_path=None, fullchain_path=None):
+#
+#	get list of identity trustpoints
+#	foreach trustpoint, get issuer + serial
+#	if current issuer + serial not found on ASA
+#
         """Initialize deploy certificate in ASA via REST API."""
         from dvsni import make_p12
+        import hashlib
+
         p12 = make_p12(cert_path, key_path)
-        not_after = p12.get_certificate().get_notAfter()
-        not_before = p12.get_certificate().get_notBefore()
+        not_after = p12.get_certificate().get_notAfter()[:8]
+        not_before = p12.get_certificate().get_notBefore()[:8]
+        sn_hash = hashlib.md5('%x' % p12.get_certificate().get_serial_number()).hexdigest()
+
+        trustpoint_name = '_'.join(['LE',not_before,'to',not_after,'SnHash:',sn_hash])
         print ("begin configurator.deploy_cert()")
         print (domain)
         print (cert_path)
