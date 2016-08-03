@@ -6,6 +6,7 @@ version = '0.1.0'
 install_requires = [
     'acme',
     'certbot>=0.7.0',
+    'pem',
     'zope.interface',
 ]
 
