@@ -120,17 +120,21 @@ class RestAsa(common.TLSSNI01):
         return
 
 
-    def get_trustpoints(self, type=None, cacert=None):
+    def list_trustpoints(self, tptype=None, cacert=None):
         """Returns list of trustpoints of the specified type, or all trustpoints"""
         import requests
         trustpoints = []
-        if type == "identity" or type == None:
+        if tptype == "identity" or tptype == None:
             apiUrl = '/api/certificate/identity'
-            r = requests.get('https://vpnlab1/api/certificate/identity', auth=('rest', 'xyz'), verify="/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt")
-
-        identityTrustpoints = []
-        for i in range(len(r.json()['items'])):
-            identityTrustpoints.append(r.json()['items'][i]['objectId'])
+            i = requests.get('https://vpnlab1'+apiUrl, auth=('rest', 'xyz'), verify="/etc/pki/tls/certs")
+            for x in range(len(i.json()['items'])):
+                trustpoints.append(i.json()['items'][x]['objectId'])
+        if tptype == "ca" or tptype == None:
+            apiUrl = '/api/certificate/ca'
+            c = requests.get('https://vpnlab1'+apiUrl, auth=('rest', 'xyz'), verify="/etc/pki/tls/certs")
+            for x in range(len(c.json()['items'])):
+                trustpoints.append(c.json()['items'][x]['trustpointName'])
+        return trustpoints
 
 
     def import_p12(self, trustpoint, P12String, PassPhrase):
