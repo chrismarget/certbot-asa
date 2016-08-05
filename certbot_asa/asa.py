@@ -45,7 +45,7 @@ class RestAsa(common.TLSSNI01):
 		s.close()
 		return False
 
-    def clear_p12(self, trustpoint):
+    def remove_trustpoint(self, trustpoint):
         """Remove P12 package from ASA"""
         import base64
         import json
@@ -82,7 +82,7 @@ class RestAsa(common.TLSSNI01):
                 return [False, err]
         return
 
-    def clear_keypair(self, keypair_name):
+    def remove_keypair(self, keypair_name):
         """Remove crypto keypair from ASA"""
         import base64
         import json
