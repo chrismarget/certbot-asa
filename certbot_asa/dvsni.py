@@ -7,19 +7,20 @@ from certbot import errors
 from certbot.plugins import common
 
 from certbot_asa import asa
+from certbot_asa import pki
 
 logger = logging.getLogger(__name__)
 
-def make_p12(cert_file, key_file):
-    """Convert cert/key files to OpenSSL p12 object"""
-    c = open(cert_file, 'rt').read()
-    k = open(key_file, 'rt').read()
-    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, c)
-    key = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, k)
-    p12 = OpenSSL.crypto.PKCS12()
-    p12.set_certificate(cert)
-    p12.set_privatekey(key)
-    return p12
+#def make_p12(cert_file, key_file):
+#    """Convert cert/key files to OpenSSL p12 object"""
+#    c = open(cert_file, 'rt').read()
+#    k = open(key_file, 'rt').read()
+#    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, c)
+#    key = OpenSSL.crypto.load_privatekey(OpenSSL.crypto.FILETYPE_PEM, k)
+#    p12 = OpenSSL.crypto.PKCS12()
+#    p12.set_certificate(cert)
+#    p12.set_privatekey(key)
+#    return p12
 
 class AsaDvsni(common.TLSSNI01):
     """Class performs DVSNI challenges within the Asa configurator.
@@ -76,7 +77,7 @@ class AsaDvsni(common.TLSSNI01):
         responses = [self._setup_challenge_cert(x) for x in self.achalls]
 
         for achall in self.achalls:
-            p12 = make_p12(self.get_cert_path(achall), self.get_key_path(achall))
+            p12 = pki.make_p12(self.get_cert_path(achall), self.get_key_path(achall))
             z_domain_hash = hashlib.md5(achall.response(achall.account_key).z_domain)
             b64string = base64.encodestring(p12.export(passphrase = z_domain_hash.hexdigest()))
             trustpoint_name = "acme_challenge_"+z_domain_hash.hexdigest()

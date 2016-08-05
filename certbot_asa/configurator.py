@@ -301,10 +301,10 @@ class AsaConfigurator(common.Plugin):
 #	if current issuer + serial not found on ASA
 #
         """Initialize deploy certificate in ASA via REST API."""
-        from dvsni import make_p12
+        import pki
         import hashlib
 
-        p12 = make_p12(cert_path, key_path)
+        p12 = pki.make_p12(cert_path, key_path)
         not_after = p12.get_certificate().get_notAfter()[:8]
         not_before = p12.get_certificate().get_notBefore()[:8]
         sn_hash = hashlib.md5('%x' % p12.get_certificate().get_serial_number()).hexdigest()
