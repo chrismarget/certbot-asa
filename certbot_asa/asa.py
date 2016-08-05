@@ -7,11 +7,12 @@ from certbot.plugins import common
 class RestAsa(common.TLSSNI01):
     """Class talks to ASA via REST API"""
 
-    def __init__(self, host, user, passwd, selfsigned):
+    def __init__(self, host, user, passwd, selfsigned, verify):
         self.host = host
         self.user = user
         self.passwd = passwd
         self.selfsigned = selfsigned
+        self.verify = verify
 
 #    :ivar configurator: AsaAuthenticator object
 #    :type configurator: :class:`~configurator.AsaAuthenticator`
@@ -117,6 +118,19 @@ class RestAsa(common.TLSSNI01):
                 if f: f.close()
                 return [False, err]
         return
+
+
+    def get_trustpoints(self, type=None, cacert=None):
+        """Returns list of trustpoints of the specified type, or all trustpoints"""
+        import requests
+        trustpoints = []
+        if type == "identity" or type == None:
+            apiUrl = '/api/certificate/identity'
+            r = requests.get('https://vpnlab1/api/certificate/identity', auth=('rest', 'xyz'), verify="/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt")
+
+        identityTrustpoints = []
+        for i in range(len(r.json()['items'])):
+            identityTrustpoints.append(r.json()['items'][i]['objectId'])
 
 
     def import_p12(self, trustpoint, P12String, PassPhrase):

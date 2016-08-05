@@ -31,18 +31,18 @@ logger = logging.getLogger(__name__)
 #    for i in range(len(r.json()['items'])):
 #        identityTrustpoints.append(r.json()['items'][i]['objectId'])
 
-def concatenate_files(files=[]):
-    """Returns filename for concatenation of input files"""
-    import os
-    import tempfile
-    if not files:
-        return None
-    fd, name = tempfile.mkstemp()
-    with os.fdopen(fd, 'w') as out:
-        for f in files:
-            with open(f) as infile:
-                out.write(infile.read())
-    return name
+#def concatenate_files(files=[]):
+#    """Returns filename for concatenation of input files"""
+#    import os
+#    import tempfile
+#    if not files:
+#        return None
+#    fd, name = tempfile.mkstemp()
+#    with os.fdopen(fd, 'w') as out:
+#        for f in files:
+#            with open(f) as infile:
+#                out.write(infile.read())
+#    return name
 
 class AsaConfigurator(common.Plugin):
     """ASA Configurator."""
@@ -59,7 +59,7 @@ class AsaConfigurator(common.Plugin):
         add("credfile", help="ASA credentials file, defaults to <config-dir>/asa_creds.txt")
         add("creddelim", help="ASA credentials file delimiter", default=';')
         add("interface", help="Attach new certificate to interface, rather than domain")
-        add("untrusted", help="Ignore SSL errors when making REST calls to managed ASA boxes", action='store_true')
+        add("untrusted", help="Ignore SSL errors when making REST calls to managed ASA boxes", default=False, action='store_true')
         add("pemstore", help="Bundle of PEM-formatted trusted certificates", action='append', default=[])
 
 
@@ -67,6 +67,7 @@ class AsaConfigurator(common.Plugin):
         print "__init__"									# delete me
         """Initialize an ASA Authenticator."""
         super(AsaConfigurator, self).__init__(*args, **kwargs)
+        #print ("pemstore",self.conf['pemstore'])
 
         # credfile lives in self.credfile rather than self.conf('credfile')
         # because I couldn't figure out how collect work_dir in
@@ -81,8 +82,6 @@ class AsaConfigurator(common.Plugin):
         self.asa = {}
         self.asacreds = {}
         self.argprefix = ''.join(["--",args[1],"-"])
-        self.castore = concatenate_files(self.conf('pemstore'))
-        print(self.castore)
 
         # Set up reverter
         self.reverter = reverter.Reverter(self.config)
@@ -149,7 +148,12 @@ class AsaConfigurator(common.Plugin):
         for h in self.conf('host') + self.conf('chost'):
             if not h in self.asacreds.keys():
                 raise errors.PluginError("Missing credentials for `"+h+"'")
-            self.asa[h] = asa.RestAsa(h, self.asacreds[h]['user'], self.asacreds[h]['passwd'], self.conf('untrusted'))
+            user = self.asacreds[h]['user']
+            pswd = self.asacreds[h]['passwd']
+            #noverify = self.conf['untrusted']
+            noverify = False
+            castore = self.conf('pemstore')
+            self.asa[h] = asa.RestAsa(h, user, pswd, noverify, castore)
 
         # Is each ASA responding on TCP/443? Hosts which don't respond will be
         # removed from the list on the assumption that if we can't hit 'em, then
@@ -356,6 +360,5 @@ class AsaConfigurator(common.Plugin):
         import os
         """Nothing to restart. ASA configuration is live when applied."""
         print ("begin configurator.restart()")
-        os.remove(self.castore)
         print ("done configurator.restart()")
         pass
