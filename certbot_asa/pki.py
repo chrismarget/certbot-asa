@@ -1,5 +1,6 @@
 """PKI stuff"""
 import OpenSSL.crypto
+import pem
 
 def make_p12(cert_file, key_file):
     print "begin pki.make_p12()"
@@ -13,3 +14,11 @@ def make_p12(cert_file, key_file):
     p12.set_privatekey(key)
     print "end pki.make_p12()"
     return p12
+
+def certs_from_pemfile(pemfile):
+    print "begin pki.make_p12()"
+    certs = pem.parse_file(pemfile)
+    for c in range(len(certs)):
+        certs[c] = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, str(certs[c]))
+    print "end pki.make_p12()"
+    return certs
