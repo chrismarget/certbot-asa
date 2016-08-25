@@ -16,9 +16,9 @@ def make_p12(cert_file, key_file):
     return p12
 
 def certs_from_pemfile(pemfile):
-    print "begin pki.make_p12()"
+    print "begin pki.certs_from_pemfile()"
     certs = pem.parse_file(pemfile)
     for c in range(len(certs)):
         certs[c] = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, str(certs[c]))
-    print "end pki.make_p12()"
+    print "end pki.certs_from_pemfile()"
     return certs

@@ -308,10 +308,17 @@ class AsaConfigurator(common.Plugin):
         not_after = p12.get_certificate().get_notAfter()[:8]
         not_before = p12.get_certificate().get_notBefore()[:8]
         sn_hash = hashlib.md5('%x' % p12.get_certificate().get_serial_number()).hexdigest()
-
         trustpoint_name = '_'.join(['LE',not_before,'to',not_after,'SnHash:',sn_hash])
+
         print ("begin configurator.deploy_cert()")
-        print (domain)
+        for i in self.conf('host'):
+            id_trustpoints = self.asa[i].list_trustpoints(certtype='identity', cacert='/etc/pki/tls/certs')
+            ca_trustpoints = self.asa[i].list_trustpoints(certtype='ca', cacert='/etc/pki/tls/certs')
+        new_certchain = pki.certs_from_pemfile(fullchain_path)
+        for i in range(len(new_certchain)):
+            print new_certchain[i].get_subject()
+
+        print ("domain "+domain)
         print (cert_path)
         print (key_path)
         print (chain_path)

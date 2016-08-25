@@ -120,18 +120,20 @@ class RestAsa(common.TLSSNI01):
         return
 
 
-    def list_trustpoints(self, tptype=None, cacert=None):
+    def list_trustpoints(self, certtype=None, cacert=None):
         """Returns list of trustpoints of the specified type, or all trustpoints"""
         import requests
         trustpoints = []
-        if tptype == "identity" or tptype == None:
-            apiUrl = '/api/certificate/identity'
-            i = requests.get('https://vpnlab1'+apiUrl, auth=('rest', 'xyz'), verify="/etc/pki/tls/certs")
+        if certtype == "identity" or certtype == None:
+            apiPath = '/api/certificate/identity'
+            apiUrl = 'https://'+self.host+apiPath
+            i = requests.get(apiUrl, auth=(self.user, self.passwd), verify=cacert)
             for x in range(len(i.json()['items'])):
                 trustpoints.append(i.json()['items'][x]['objectId'])
-        if tptype == "ca" or tptype == None:
-            apiUrl = '/api/certificate/ca'
-            c = requests.get('https://vpnlab1'+apiUrl, auth=('rest', 'xyz'), verify="/etc/pki/tls/certs")
+        if certtype == "ca" or certtype == None:
+            apiPath = '/api/certificate/ca'
+            apiUrl = 'https://'+self.host+apiPath
+            c = requests.get(apiUrl, auth=(self.user, self.passwd), verify=cacert)
             for x in range(len(c.json()['items'])):
                 trustpoints.append(c.json()['items'][x]['trustpointName'])
         return trustpoints
