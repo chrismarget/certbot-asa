@@ -18,32 +18,6 @@ from certbot_asa import asa
 
 logger = logging.getLogger(__name__)
 
-#def get_trustpoints(asa, type=None, mode="https", verify=True, cacert=None):
-#    """Returns list of trustpoints of the specified type, or all trustpoints"""
-#    import requests
-#    trustpoints = []
-#    if type == "identity" or type == None:
-#        apiUrl = /api/certificate/identity
-#    r = requests.get('https://vpnlab1/api/certificate/identity', auth=('rest', 'xyz'), verify="/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt")
-#    
-#
-#    identityTrustpoints = []
-#    for i in range(len(r.json()['items'])):
-#        identityTrustpoints.append(r.json()['items'][i]['objectId'])
-
-#def concatenate_files(files=[]):
-#    """Returns filename for concatenation of input files"""
-#    import os
-#    import tempfile
-#    if not files:
-#        return None
-#    fd, name = tempfile.mkstemp()
-#    with os.fdopen(fd, 'w') as out:
-#        for f in files:
-#            with open(f) as infile:
-#                out.write(infile.read())
-#    return name
-
 class AsaConfigurator(common.Plugin):
     """ASA Configurator."""
     zope.interface.implements(interfaces.IAuthenticator, interfaces.IInstaller)
@@ -59,8 +33,8 @@ class AsaConfigurator(common.Plugin):
         add("credfile", help="ASA credentials file, defaults to <config-dir>/asa_creds.txt")
         add("creddelim", help="ASA credentials file delimiter", default=';')
         add("interface", help="Attach new certificate to interface, rather than domain")
-        add("untrusted", help="Ignore SSL errors when making REST calls to managed ASA boxes", default=False, action='store_true')
-        add("pemstore", help="Bundle of PEM-formatted trusted certificates", action='append', default=[])
+        add("ignore_cert", help="Ignore SSL errors when making REST calls to managed ASA boxes", default=False, action='store_true')
+        add("castore", help="Bundle of PEM-formatted trusted certificates or c_rehash'ed directory")
         print "end configurator.add_parser_arguments()"
 
 
@@ -68,7 +42,6 @@ class AsaConfigurator(common.Plugin):
         print "begin configurator.__init__()"
         """Initialize an ASA Authenticator."""
         super(AsaConfigurator, self).__init__(*args, **kwargs)
-        #print ("pemstore",self.conf['pemstore'])
 
         # credfile lives in self.credfile rather than self.conf('credfile')
         # because I couldn't figure out how collect work_dir in
@@ -152,10 +125,7 @@ class AsaConfigurator(common.Plugin):
                 raise errors.PluginError("Missing credentials for `"+h+"'")
             user = self.asacreds[h]['user']
             pswd = self.asacreds[h]['passwd']
-            #noverify = self.conf['untrusted']
-            noverify = False
-            castore = self.conf('pemstore')
-            self.asa[h] = asa.RestAsa(h, user, pswd, noverify, castore)
+            self.asa[h] = asa.RestAsa(h, user, pswd, self.conf('ignore_cert'), self.conf('castore'))
 
         # Is each ASA responding on TCP/443? Hosts which don't respond will be
         # removed from the list on the assumption that if we can't hit 'em, then
@@ -186,7 +156,7 @@ class AsaConfigurator(common.Plugin):
             if not result[0]:
                 if "SSL: CERTIFICATE_VERIFY_FAILED" in str(result[1]):
                     raise errors.PluginError("SSL Certificate Validation failure "
-                    "with "+h+". Consider using the `untrusted' CLI option "
+                    "with "+h+". Consider using the `ignore_cert' CLI option "
                     "for this plugin.")
                 else:
                     raise errors.PluginError(str(result[1]))
@@ -294,29 +264,37 @@ class AsaConfigurator(common.Plugin):
             'No ability to preview configs')
 
     def deploy_cert(self, domain, cert_path, key_path, chain_path=None, fullchain_path=None):
-        print "begin configurator.deploy_cert()"
-#
-#	get list of identity trustpoints
-#	foreach trustpoint, get issuer + serial
-#	if current issuer + serial not found on ASA
-#
         """Initialize deploy certificate in ASA via REST API."""
+        print "begin configurator.deploy_cert()"
         import pki
         import hashlib
 
         p12 = pki.make_p12(cert_path, key_path)
         not_after = p12.get_certificate().get_notAfter()[:8]
         not_before = p12.get_certificate().get_notBefore()[:8]
-        sn_hash = hashlib.md5('%x' % p12.get_certificate().get_serial_number()).hexdigest()
-        trustpoint_name = '_'.join(['LE',not_before,'to',not_after,'SnHash:',sn_hash])
+        cert_hash_string = ''
+        cert_hash_string += p12.get_certificate().get_issuer().CN
+        cert_hash_string += '/'
+        cert_hash_string += '%x' % p12.get_certificate().get_serial_number()
+        cert_hash = hashlib.md5(cert_hash_string).hexdigest()
+        trustpoint_name = '_'.join(['LE_cert',cert_hash,not_before,'to',not_after])
 
-        print ("begin configurator.deploy_cert()")
-        for i in self.conf('host'):
-            id_trustpoints = self.asa[i].list_trustpoints(certtype='identity', cacert='/etc/pki/tls/certs')
-            ca_trustpoints = self.asa[i].list_trustpoints(certtype='ca', cacert='/etc/pki/tls/certs')
         new_certchain = pki.certs_from_pemfile(fullchain_path)
-        for i in range(len(new_certchain)):
-            print new_certchain[i].get_subject()
+
+        for h in self.conf('host'):
+            installed_certs = []
+            trustpoints = self.asa[h].list_trustpoints()
+            for tp in trustpoints:
+                installed_certs.append(self.asa[h].get_cert_json(tp))
+            for i in range(len(installed_certs)):
+                issuer = str(next(obj for obj in installed_certs[i]['issuer'] if obj[:3] == 'cn=')[3:])
+                serial = str(installed_certs[i]['serialNumber'])
+                installed_certs[i] = [issuer, serial]
+# if issuer,serial not 
+            for i in range(len(new_certchain)):
+                issuer = new_certchain[i].get_issuer().CN
+                serial = hex(new_certchain[i].get_serial_number())[2:]
+                print (new_certchain[i].get_subject())
 
         print ("domain "+domain)
         print (cert_path)

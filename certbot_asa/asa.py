@@ -2,17 +2,20 @@
 
 from certbot import errors
 from certbot.plugins import common
+import requests
 
 
 class RestAsa(common.TLSSNI01):
     """Class talks to ASA via REST API"""
 
-    def __init__(self, host, user, passwd, selfsigned, verify):
+    def __init__(self, host, user, passwd, noverify, castore):
         self.host = host
         self.user = user
         self.passwd = passwd
-        self.selfsigned = selfsigned
-        self.verify = verify
+        self.noverify = noverify
+        self.verify = castore
+        if noverify == True:
+            self.verify = False
 
 #    :ivar configurator: AsaAuthenticator object
 #    :type configurator: :class:`~configurator.AsaAuthenticator`
@@ -51,7 +54,7 @@ class RestAsa(common.TLSSNI01):
         import json
         import urllib2
         import ssl
-        print "removing from "+self.host+" trustpoint "+trustpoint+" with selfsigned: "+str(self.selfsigned)
+        print "removing from "+self.host+" trustpoint "+trustpoint+" with noverify: "+str(self.noverify)
 
         headers = {'Content-Type': 'application/json'}
         api_path = "/api/certificate/identity/"+trustpoint
@@ -63,7 +66,7 @@ class RestAsa(common.TLSSNI01):
         req.get_method = lambda: 'DELETE'
 
         f = None
-        if self.selfsigned:
+        if self.noverify:
             try:
                 f = urllib2.urlopen(req, context=ssl._create_unverified_context(), timeout=30)
                 status_code = f.getcode()
@@ -88,7 +91,7 @@ class RestAsa(common.TLSSNI01):
         import json
         import urllib2
         import ssl
-        print "removing from "+self.host+" keypair "+keypair_name+" with selfsigned: "+str(self.selfsigned)
+        print "removing from "+self.host+" keypair "+keypair_name+" with noverify: "+str(self.noverify)
 
         headers = {'Content-Type': 'application/json'}
         api_path = "/api/certificate/keypair/"+keypair_name
@@ -100,7 +103,7 @@ class RestAsa(common.TLSSNI01):
         req.get_method = lambda: 'DELETE'
 
         f = None
-        if self.selfsigned:
+        if self.noverify:
             try:
                 f = urllib2.urlopen(req, context=ssl._create_unverified_context(), timeout=30)
                 status_code = f.getcode()
@@ -120,20 +123,31 @@ class RestAsa(common.TLSSNI01):
         return
 
 
-    def list_trustpoints(self, certtype=None, cacert=None):
+    def get_cert_json(self, trustpoint):
+        """Returns cert details from the specified trustpoint"""
+        print ("begin get_cert_json")
+        print ("verify="+str(self.verify))
+        apiPath = '/api/certificate/details/'
+        apiUrl = 'https://'+self.host+apiPath+trustpoint
+        i = requests.get(apiUrl, auth=(self.user, self.passwd), verify=self.verify)
+        print ("end get_cert_json")
+        return i.json()
+
+
+    def list_trustpoints(self, certtype=None):
         """Returns list of trustpoints of the specified type, or all trustpoints"""
-        import requests
+        requests.packages.urllib3.disable_warnings()
         trustpoints = []
         if certtype == "identity" or certtype == None:
             apiPath = '/api/certificate/identity'
             apiUrl = 'https://'+self.host+apiPath
-            i = requests.get(apiUrl, auth=(self.user, self.passwd), verify=cacert)
+            i = requests.get(apiUrl, auth=(self.user, self.passwd), verify=self.verify)
             for x in range(len(i.json()['items'])):
                 trustpoints.append(i.json()['items'][x]['objectId'])
         if certtype == "ca" or certtype == None:
             apiPath = '/api/certificate/ca'
             apiUrl = 'https://'+self.host+apiPath
-            c = requests.get(apiUrl, auth=(self.user, self.passwd), verify=cacert)
+            c = requests.get(apiUrl, auth=(self.user, self.passwd), verify=self.verify)
             for x in range(len(c.json()['items'])):
                 trustpoints.append(c.json()['items'][x]['trustpointName'])
         return trustpoints
@@ -145,7 +159,7 @@ class RestAsa(common.TLSSNI01):
         import json
         import urllib2
         import ssl
-        print "importing certificate to "+self.host+" trustpoint "+trustpoint+" with selfsigned: "+str(self.selfsigned)
+        print "importing certificate to "+self.host+" trustpoint "+trustpoint+" with noverify: "+str(self.noverify)
 
         headers = {'Content-Type': 'application/json'}
         api_path = "/api/certificate/identity"
@@ -162,7 +176,7 @@ class RestAsa(common.TLSSNI01):
         req.add_header("Authorization", "Basic %s" % base64string)   
 
         f = None
-        if self.selfsigned:
+        if self.noverify:
             try:
                 f = urllib2.urlopen(req, context=ssl._create_unverified_context(), timeout=30)
                 status_code = f.getcode()
@@ -198,7 +212,7 @@ class RestAsa(common.TLSSNI01):
         req = urllib2.Request(url, json.dumps(post_data), headers)
         base64string = base64.encodestring('%s:%s' % (self.user, self.passwd)).replace('\n', '')
         req.add_header("Authorization", "Basic %s" % base64string)
-        if self.selfsigned:
+        if self.noverify:
             try:
                 f = urllib2.urlopen(req, context=ssl._create_unverified_context(), timeout=30)
                 status_code = f.getcode()
@@ -232,7 +246,7 @@ class RestAsa(common.TLSSNI01):
         req = urllib2.Request(url, json.dumps(post_data), headers)
         base64string = base64.encodestring('%s:%s' % (self.user, self.passwd)).replace('\n', '')
         req.add_header("Authorization", "Basic %s" % base64string)
-        if self.selfsigned:
+        if self.noverify:
             try:
                 f = urllib2.urlopen(req, context=ssl._create_unverified_context(), timeout=30)
                 status_code = f.getcode()
