@@ -73,7 +73,6 @@ class certs_from_pemfile():
                     if data:
                         ca = data.getComponentByPosition(0).hasValue()
                     if not ca:
-                        print "pruning "+str(self.certs[i].get_subject())
                         self.certs.pop(i)
                         return True
         return False
