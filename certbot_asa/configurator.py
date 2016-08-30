@@ -280,7 +280,8 @@ class AsaConfigurator(common.Plugin):
         trustpoint_name = '_'.join(['LE_cert',cert_hash,not_before,'to',not_after])
 
         new_certchain = pki.certs_from_pemfile(fullchain_path)
-        print("new_certchain: "+str(type(new_certchain)))+" "+str(new_certchain.len())
+        new_certchain.prune_root()
+        new_certchain.prune_not_ca()
 
         for h in self.conf('host'):
             installed_certs = []
@@ -289,8 +290,21 @@ class AsaConfigurator(common.Plugin):
                 installed_certs.append(self.asa[h].get_cert_json(tp))
             for i in range(len(installed_certs)):
                 issuer = str(next(obj for obj in installed_certs[i]['issuer'] if obj[:3] == 'cn=')[3:])
+                subject = str(next(obj for obj in installed_certs[i]['subject'] if obj[:3] == 'cn=')[3:])
                 serial = str(installed_certs[i]['serialNumber'])
-                installed_certs[i] = [issuer, serial]
+                while serial[:2] == '00':
+                    serial = serial[2:]
+                installed_certs[i] = (subject, issuer, serial)
+                print ("found this cert installed: "+str(installed_certs[i]))
+            for i in range(len(new_certchain)):
+                issuer = new_certchain.get_cert(i).get_issuer().CN
+                subject = new_certchain.get_cert(i).get_subject().CN
+                serial = pki.pack_l2s(new_certchain.get_cert(i).get_serial_number())
+                cert_id = (subject, issuer, serial)
+                print "checking if we need to install "+str(cert_id)
+                if cert_id not in installed_certs:
+                   print "need to install "+str(cert_id)
+                   # self.asa[h].install_cert
 # if issuer,serial not 
 #            for i in range(len(new_certchain)):
 #                issuer = new_certchain[i].get_issuer().CN

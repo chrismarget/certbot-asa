@@ -15,7 +15,7 @@ def make_p12(cert_file, key_file):
     print "end pki.make_p12()"
     return p12
 
-def pack_l2str(lnum, sep='', case='lower'):
+def pack_l2s(lnum, sep='', case='lower'):
     import ctypes
     PyLong_AsByteArray = ctypes.pythonapi._PyLong_AsByteArray
     PyLong_AsByteArray.argtypes = [ctypes.py_object,
