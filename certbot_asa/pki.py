@@ -15,6 +15,23 @@ def make_p12(cert_file, key_file):
     print "end pki.make_p12()"
     return p12
 
+def pack_l2str(lnum, sep='', case='lower'):
+    import ctypes
+    PyLong_AsByteArray = ctypes.pythonapi._PyLong_AsByteArray
+    PyLong_AsByteArray.argtypes = [ctypes.py_object,
+                                   ctypes.c_char_p,
+                                   ctypes.c_size_t,
+                                   ctypes.c_int,
+                                   ctypes.c_int]
+    a = ctypes.create_string_buffer(lnum.bit_length()//8 + 1)
+    PyLong_AsByteArray(lnum, a, len(a), 0, 1)
+    hexbytes = ["{:02x}".format(ord(b)) for b in a.raw]
+    while hexbytes[0] == '00':
+        hexbytes.pop(0)
+    if case == 'upper':
+        return sep.join(hexbytes).upper()
+    return sep.join(hexbytes)
+
 class certs_from_pemfile():
     import OpenSSL.crypto
     import pem
@@ -31,9 +48,6 @@ class certs_from_pemfile():
 
     def prune_root(self):
         for i in list(reversed(range(len(self.certs)))):
-            print self.certs[i].get_issuer()
-            print self.certs[i].get_subject()
-            print
             if self.certs[i].get_issuer() == self.certs[i].get_subject():
                 self.certs.pop(i)
                 return True
