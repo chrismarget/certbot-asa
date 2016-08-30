@@ -152,6 +152,9 @@ class RestAsa(common.TLSSNI01):
                 trustpoints.append(c.json()['items'][x]['trustpointName'])
         return trustpoints
 
+    def import_ca_cert(self, trustpoint, PEMstring):
+        """Install PEM-encoded CA cert on an ASA"""
+        requests.packages.urllib3.disable_warnings()
 
     def import_p12(self, trustpoint, P12String, PassPhrase):
         """Install P12 package on an ASA"""

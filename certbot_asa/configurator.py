@@ -297,9 +297,10 @@ class AsaConfigurator(common.Plugin):
                 installed_certs[i] = (subject, issuer, serial)
                 print ("found this cert installed: "+str(installed_certs[i]))
             for i in range(len(new_certchain)):
-                issuer = new_certchain.get_cert(i).get_issuer().CN
-                subject = new_certchain.get_cert(i).get_subject().CN
-                serial = pki.pack_l2s(new_certchain.get_cert(i).get_serial_number())
+                cert = new_certchain.get_cert(i)
+                issuer = cert.get_issuer().CN
+                subject = cert.get_subject().CN
+                serial = pki.pack_l2s(cert.get_serial_number())
                 cert_id = (subject, issuer, serial)
                 print "checking if we need to install "+str(cert_id)
                 if cert_id not in installed_certs:
