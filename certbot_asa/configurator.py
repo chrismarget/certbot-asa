@@ -280,6 +280,7 @@ class AsaConfigurator(common.Plugin):
         trustpoint_name = '_'.join(['LE_cert',cert_hash,not_before,'to',not_after])
 
         new_certchain = pki.certs_from_pemfile(fullchain_path)
+        print("new_certchain: "+str(type(new_certchain)))+" "+str(new_certchain.len())
 
         for h in self.conf('host'):
             installed_certs = []
@@ -291,10 +292,10 @@ class AsaConfigurator(common.Plugin):
                 serial = str(installed_certs[i]['serialNumber'])
                 installed_certs[i] = [issuer, serial]
 # if issuer,serial not 
-            for i in range(len(new_certchain)):
-                issuer = new_certchain[i].get_issuer().CN
-                serial = hex(new_certchain[i].get_serial_number())[2:]
-                print (new_certchain[i].get_subject())
+#            for i in range(len(new_certchain)):
+#                issuer = new_certchain[i].get_issuer().CN
+#                serial = hex(new_certchain[i].get_serial_number())[2:]
+#                print (new_certchain[i].get_subject())
 
         print ("domain "+domain)
         print (cert_path)
