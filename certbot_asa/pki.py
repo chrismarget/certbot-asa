@@ -15,6 +15,13 @@ def make_p12(cert_file, key_file):
     print "end pki.make_p12()"
     return p12
 
+def get_dns_sans(cert):
+    for i in range(cert.get_extension_count()):
+        if cert.get_extension(i).get_short_name() == 'subjectAltName':
+            sans = str(cert.get_extension(i)).split(', ')
+            return [ x[4:] for x in sans if x[:4]=="DNS:" ]
+    return []
+
 def pack_l2s(lnum, sep='', case='lower'):
     import ctypes
     PyLong_AsByteArray = ctypes.pythonapi._PyLong_AsByteArray

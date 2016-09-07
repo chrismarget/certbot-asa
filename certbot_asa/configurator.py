@@ -274,11 +274,13 @@ class AsaConfigurator(common.Plugin):
         p12 = pki.make_p12(cert_path, key_path)
         not_after = p12.get_certificate().get_notAfter()[:8]
         not_before = p12.get_certificate().get_notBefore()[:8]
-        cert_hash_string = ''
-        cert_hash_string += p12.get_certificate().get_issuer().CN
-        cert_hash_string += '/'
-        cert_hash_string += '%x' % p12.get_certificate().get_serial_number()
-        cert_hash = hashlib.md5(cert_hash_string).hexdigest()
+        cert = p12.get_certificate()
+        sans = pki.get_dns_sans(cert)
+        hash_string = ''
+        hash_string += p12.get_certificate().get_issuer().CN
+        hash_string += '/'
+        hash_string += '%x' % p12.get_certificate().get_serial_number()
+        cert_hash = hashlib.md5(hash_string).hexdigest()
         trustpoint_name = '_'.join(['LE_cert',cert_hash,not_before,'to',not_after])
 
         new_certchain = pki.certs_from_pemfile(fullchain_path)
@@ -288,6 +290,13 @@ class AsaConfigurator(common.Plugin):
         for h in self.conf('host'):
             installed_certs = []
             trustpoints = self.asa[h].list_trustpoints()
+
+            if trustpoint_name not in trustpoints:
+                passphrase = base64.encodestring(OpenSSL.rand.bytes(12)).rstrip()
+                b64string = base64.encodestring(p12.export(passphrase = passphrase))
+                self.asa[h].import_p12(trustpoint_name, b64string, passphrase)
+                for san in sans:
+                    self.asa[h].Activate_SNI(san, trustpoint_name)
 
             for tp in trustpoints:
                 installed_cert_json = self.asa[h].get_cert_json(tp)
