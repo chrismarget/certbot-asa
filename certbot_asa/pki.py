@@ -62,7 +62,6 @@ class certs_from_pemfile():
     def get_cert(self,i):
         return self.certs[i]
 
-
     def prune_not_ca(self):
         from pyasn1.codec.ber import decoder as d
         for i in list(reversed(range(len(self.certs)))):
@@ -76,3 +75,15 @@ class certs_from_pemfile():
                         self.certs.pop(i)
                         return True
         return False
+
+    def get_server_cert(self):
+        from pyasn1.codec.ber import decoder as d
+        for i in range(len(self.certs)):
+            for e in range(self.certs[i].get_extension_count()):
+                if self.certs[i].get_extension(e).get_short_name() == 'basicConstraints':
+                    data = d.decode(self.certs[i].get_extension(e).get_data())[0]
+                    ca = False
+                    if data:
+                        ca = data.getComponentByPosition(0).hasValue()
+                    if not ca:
+                        return self.certs[i]

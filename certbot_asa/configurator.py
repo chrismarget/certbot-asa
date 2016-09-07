@@ -266,8 +266,10 @@ class AsaConfigurator(common.Plugin):
     def deploy_cert(self, domain, cert_path, key_path, chain_path=None, fullchain_path=None):
         """Initialize deploy certificate in ASA via REST API."""
         print "begin configurator.deploy_cert()"
+        import base64
         import pki
         import hashlib
+        import OpenSSL.crypto
 
         p12 = pki.make_p12(cert_path, key_path)
         not_after = p12.get_certificate().get_notAfter()[:8]
@@ -286,25 +288,48 @@ class AsaConfigurator(common.Plugin):
         for h in self.conf('host'):
             installed_certs = []
             trustpoints = self.asa[h].list_trustpoints()
+
             for tp in trustpoints:
-                installed_certs.append(self.asa[h].get_cert_json(tp))
-            for i in range(len(installed_certs)):
-                issuer = str(next(obj for obj in installed_certs[i]['issuer'] if obj[:3] == 'cn=')[3:])
-                subject = str(next(obj for obj in installed_certs[i]['subject'] if obj[:3] == 'cn=')[3:])
-                serial = str(installed_certs[i]['serialNumber'])
+                installed_cert_json = self.asa[h].get_cert_json(tp)
+                issuer = str(next(obj for obj in installed_cert_json['issuer'] if obj[:3] == 'cn=')[3:])
+                subject = str(next(obj for obj in installed_cert_json['subject'] if obj[:3] == 'cn=')[3:])
+                serial = str(installed_cert_json['serialNumber'])
                 while serial[:2] == '00':
                     serial = serial[2:]
-                installed_certs[i] = (subject, issuer, serial)
-                print ("found this cert installed: "+str(installed_certs[i]))
+                installed_certs.append((subject, issuer, serial))
+
+#            for tp in trustpoints:
+#                installed_certs.append(self.asa[h].get_cert_json(tp))
+#            for i in range(len(installed_certs)):
+#                issuer = str(next(obj for obj in installed_certs[i]['issuer'] if obj[:3] == 'cn=')[3:])
+#                subject = str(next(obj for obj in installed_certs[i]['subject'] if obj[:3] == 'cn=')[3:])
+#                serial = str(installed_certs[i]['serialNumber'])
+#                while serial[:2] == '00':
+#                    serial = serial[2:]
+#                installed_certs[i] = (subject, issuer, serial)
+#                print ("found this cert installed: "+str(installed_certs[i]))
+
+            # Loop over certificates in the provided chain. Identify certs
+            # which are not currently installed on the ASA. Install them.
             for i in range(len(new_certchain)):
                 cert = new_certchain.get_cert(i)
                 issuer = cert.get_issuer().CN
                 subject = cert.get_subject().CN
-                serial = pki.pack_l2s(cert.get_serial_number())
+#                serial = pki.pack_l2s(cert.get_serial_number())
+                serial = '%x' % cert.get_serial_number()
                 cert_id = (subject, issuer, serial)
                 print "checking if we need to install "+str(cert_id)
                 if cert_id not in installed_certs:
                    print "need to install "+str(cert_id)
+                   cert_hash_string = ''
+                   cert_hash_string += cert.get_issuer().CN
+                   cert_hash_string += '/'
+                   cert_hash_string += '%x' % cert.get_serial_number()
+                   cert_hash = hashlib.md5(cert_hash_string).hexdigest()
+                   trustpoint_name = '_'.join(['LE_CA',cert_hash,'expires',cert.get_notAfter()[:8]])
+                   cert_pem_string = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
+                   self.asa[h].import_ca_cert(trustpoint_name, cert_pem_string)
+
                    # self.asa[h].install_cert
 # if issuer,serial not 
 #            for i in range(len(new_certchain)):
