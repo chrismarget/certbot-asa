@@ -3,7 +3,10 @@
 from certbot import errors
 from certbot.plugins import common
 import requests
+import logging
 
+requests.packages.urllib3.disable_warnings()
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 class RestAsa(common.TLSSNI01):
     """Class talks to ASA via REST API"""
@@ -125,13 +128,19 @@ class RestAsa(common.TLSSNI01):
 
     def get_cert_json(self, trustpoint):
         """Returns cert details from the specified trustpoint"""
-        print ("begin get_cert_json")
-        print ("verify="+str(self.verify))
         apiPath = '/api/certificate/details/'
         apiUrl = 'https://'+self.host+apiPath+trustpoint
         i = requests.get(apiUrl, auth=(self.user, self.passwd), verify=self.verify)
-        print ("end get_cert_json")
         return i.json()
+
+
+    def writemem(self):
+        """Saves configuration"""
+        print ("begin writemem")
+        apiPath = '/api/commands/writemem'
+        apiUrl = 'https://'+self.host+apiPath
+        headers = {'Content-Type': 'application/json'}
+        r = requests.post(apiUrl, headers=headers, data={}, auth=(self.user, self.passwd), verify=self.verify)
 
 
     def list_trustpoints(self, certtype=None):

@@ -164,7 +164,6 @@ class AsaConfigurator(common.Plugin):
         print "end configurator.prepare()"
 
     def get_chall_pref(self, domain):
-        print ("begin configurator.get_chall_pref()")
         """Return list of challenge preferences.
 
         :param str domain: Domain for which challenge preferences are sought.
@@ -176,11 +175,9 @@ class AsaConfigurator(common.Plugin):
         :rtype: list
 
         """
-        print ("end configurator.get_chall_pref()")
         return [challenges.TLSSNI01]
 
     def perform(self, achalls):
-        print "begin configurator.perform()"
         """Perform the given challenge.
 
         :param list achalls: Non-empty (guaranteed) list of
@@ -220,11 +217,9 @@ class AsaConfigurator(common.Plugin):
         for i, resp in enumerate(sni_response):
             responses[asa_dvsni.indices[i]] = resp
 
-        print "end configurator.perform()"
         return responses
 
     def cleanup(self, achalls):
-        print ("begin configurator.cleanup()")
         """Revert changes and shutdown after challenges complete.
 
         :param list achalls: Non-empty (guaranteed) list of
@@ -238,7 +233,6 @@ class AsaConfigurator(common.Plugin):
         for i, achall in enumerate(achalls):
             asa_dvsni.add_chall(achall, i)
         cleanup_response = asa_dvsni.cleanup(list(self.asa.values()))
-        print ("end configurator.cleanup()")
 
     def more_info(self):
         print "begin configurator.more_info()"
@@ -287,10 +281,14 @@ class AsaConfigurator(common.Plugin):
         new_certchain.prune_root()
         new_certchain.prune_not_ca()
 
+        # Loop over "host" ASAs (exclude "challenge-only" ASAs)
         for h in self.conf('host'):
             installed_certs = []
             trustpoints = self.asa[h].list_trustpoints()
 
+            # Is our pre-determined name for this certificate already in use?
+            # If not, install the cert and activate the new trustpoint for all
+            # DNS AltNames found in therein.
             if trustpoint_name not in trustpoints:
                 passphrase = base64.encodestring(OpenSSL.rand.bytes(12)).rstrip()
                 b64string = base64.encodestring(p12.export(passphrase = passphrase))
@@ -298,6 +296,7 @@ class AsaConfigurator(common.Plugin):
                 for san in sans:
                     self.asa[h].Activate_SNI(san, trustpoint_name)
 
+            # Loop over installed trustpoints, catalog their (subject, issuer, serial)
             for tp in trustpoints:
                 installed_cert_json = self.asa[h].get_cert_json(tp)
                 issuer = str(next(obj for obj in installed_cert_json['issuer'] if obj[:3] == 'cn=')[3:])
@@ -307,29 +306,15 @@ class AsaConfigurator(common.Plugin):
                     serial = serial[2:]
                 installed_certs.append((subject, issuer, serial))
 
-#            for tp in trustpoints:
-#                installed_certs.append(self.asa[h].get_cert_json(tp))
-#            for i in range(len(installed_certs)):
-#                issuer = str(next(obj for obj in installed_certs[i]['issuer'] if obj[:3] == 'cn=')[3:])
-#                subject = str(next(obj for obj in installed_certs[i]['subject'] if obj[:3] == 'cn=')[3:])
-#                serial = str(installed_certs[i]['serialNumber'])
-#                while serial[:2] == '00':
-#                    serial = serial[2:]
-#                installed_certs[i] = (subject, issuer, serial)
-#                print ("found this cert installed: "+str(installed_certs[i]))
-
-            # Loop over certificates in the provided chain. Identify certs
+            # Loop over certificates in the provided chain. Identify CA certs
             # which are not currently installed on the ASA. Install them.
             for i in range(len(new_certchain)):
                 cert = new_certchain.get_cert(i)
                 issuer = cert.get_issuer().CN
                 subject = cert.get_subject().CN
-#                serial = pki.pack_l2s(cert.get_serial_number())
                 serial = '%x' % cert.get_serial_number()
                 cert_id = (subject, issuer, serial)
-                print "checking if we need to install "+str(cert_id)
                 if cert_id not in installed_certs:
-                   print "need to install "+str(cert_id)
                    cert_hash_string = ''
                    cert_hash_string += cert.get_issuer().CN
                    cert_hash_string += '/'
@@ -337,20 +322,8 @@ class AsaConfigurator(common.Plugin):
                    cert_hash = hashlib.md5(cert_hash_string).hexdigest()
                    trustpoint_name = '_'.join(['LE_CA',cert_hash,'expires',cert.get_notAfter()[:8]])
                    cert_pem_string = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
+                   print "installing "+str(cert_id)
                    self.asa[h].import_ca_cert(trustpoint_name, cert_pem_string)
-
-                   # self.asa[h].install_cert
-# if issuer,serial not 
-#            for i in range(len(new_certchain)):
-#                issuer = new_certchain[i].get_issuer().CN
-#                serial = hex(new_certchain[i].get_serial_number())[2:]
-#                print (new_certchain[i].get_subject())
-
-        print ("domain "+domain)
-        print (cert_path)
-        print (key_path)
-        print (chain_path)
-        print (fullchain_path)
         print "end configurator.deploy_cert()"
 
     @staticmethod
@@ -380,9 +353,13 @@ class AsaConfigurator(common.Plugin):
         print ("end configurator.enhance()")
         raise errors.NotSupportedError('No enhancements are supported now.')
 
-    def save(self, unused_title=None, temporary=False):
-        """Push Plesk to deploy certificate."""
-        print ("begin configurator.save()")
+    def save(self, title=None, temporary=False):
+        """Save ASA configuration."""
+        print ("begin configurator.save("+str(title)+" "+str(temporary)+")")
+        if title == "Deployed ACME Certificate":
+            for h in self.conf('host'):
+                self.asa[h].writemem()
+        
         # todo: save the config here
         print ("end configurator.save()")
         pass  # pragma: no cover
