@@ -299,9 +299,12 @@ class AsaConfigurator(common.Plugin):
             # Loop over installed trustpoints, catalog their (subject, issuer, serial)
             for tp in trustpoints:
                 installed_cert_json = self.asa[h].get_cert_json(tp)
-                issuer = str(next(obj for obj in installed_cert_json['issuer'] if obj[:3] == 'cn=')[3:])
-                subject = str(next(obj for obj in installed_cert_json['subject'] if obj[:3] == 'cn=')[3:])
-                serial = str(installed_cert_json['serialNumber'])
+                try:
+                    issuer = str(next(obj for obj in installed_cert_json['issuer'] if obj[:3] == 'cn=')[3:])
+                    subject = str(next(obj for obj in installed_cert_json['subject'] if obj[:3] == 'cn=')[3:])
+                    serial = str(installed_cert_json['serialNumber'])
+                except:
+                    continue
                 while serial[:2] == '00':
                     serial = serial[2:]
                 installed_certs.append((subject, issuer, serial))

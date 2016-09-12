@@ -41,7 +41,6 @@ class AsaDvsni(common.TLSSNI01):
             trustpoint_name = "acme_challenge_"+z_domain_hash.hexdigest()
             for a in asa:
                 a.remove_trustpoint(trustpoint_name)
-                a.remove_keypair(trustpoint_name)
         print "end dvsni.cleanup"
 
     def perform(self, asa):
