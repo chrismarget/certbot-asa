@@ -31,5 +31,5 @@ Neither the plugin nor the Certbot client run *on* the ASA. Both run on a manage
 * Accurate clocks on both the Linux host and the ASA(s).
 * A *management name* by which the Linux host knows the ASAs. This must be different than the name end users use. Something like asa-mgmt.company.com is probably appropriate here. It does not need to use the *management interface* on the ASA. We just need a different name.
 * A TLS certificate used for management access to the ASA(s). This certificate will be for the management name above. Options here include:
-..* xyz
-..* 123
+  * xyz
+  * 123
