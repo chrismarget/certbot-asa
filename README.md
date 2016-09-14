@@ -23,4 +23,13 @@ Neither the plugin nor the Certbot client run *on* the ASA. Both run on a manage
 ## Requirements
 
 * One or more Cisco ASA boxes with [hardware and software revisions that support the REST API](http://www.cisco.com/c/en/us/td/docs/security/asa/compatibility/asamatrx.html#pgfId-131643).
-* The REST API installed and configured ([bug](https://bst.cloudapps.cisco.com/bugsearch/bug/CSCuv80223) and [bug](https://bst.cloudapps.cisco.com/bugsearch/bug/CSCuw60598) relevant to ASAs configured with `aaa authorization command`)
+* The REST API installed and configured ([bug](https://bst.cloudapps.cisco.com/bugsearch/bug/CSCuv80223) and [bug](https://bst.cloudapps.cisco.com/bugsearch/bug/CSCuw60598) relevant to ASAs configured with `aaa authorization command`) on the ASA(s).
+* A Linux host on which to run the Let's Encrypt client (certbot).
+* ASA credentials.
+* HTTPS access to the ASA from the Linux host.
+* Permission to manage the ASA from the Linux host: `http <address> <mask> <interface>` on the ASA(s).
+* Accurate clocks on both the Linux host and the ASA(s).
+* A *management name* by which the Linux host knows the ASAs. This must be different than the name end users use. Something like asa-mgmt.company.com is probably appropriate here. It does not need to use the *management interface* on the ASA. We just need a different name.
+* A TLS certificate used for management access to the ASA(s). This certificate will be for the management name above. Options here include:
+..* xyz
+..* 123
