@@ -39,7 +39,8 @@ Neither the plugin nor the Certbot client run *on* the ASA. Both run on a manage
 
 I used CentOS 7, so these examples will go smoothly if you do too. But you can use whatever. It'd probably run on Windows.
 
-``` # Freshen up and install some packages we'll use
+```
+# Freshen up and install some packages we'll use
 sudo yum -y update
 sudo yum -y install git openssl-perl
 ```
