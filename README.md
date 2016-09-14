@@ -1,3 +1,3 @@
 ## Cisco ASA plugin for Let's Encrypt client
 
-I should write some information here.
+This is a plugin for the Let's Encrypt Certbot client.
