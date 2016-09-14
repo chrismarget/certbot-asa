@@ -1,10 +1,10 @@
 # Cisco ASA plugin for Let's Encrypt client
 
-This is a plugin for the [Certbot](https://github.com/certbot/certbot) client from Let's Encrypt.
+This is a plugin for the [Certbot](https://github.com/certbot/certbot) client from [Let's Encrypt](https://letsencrypt.org).
 
-It answers TLSSNI01 challenges with Cisco ASA boxes and installs the resulting certificates using the [Cisco ASA REST API](http://www.cisco.com/c/en/us/td/docs/security/asa/api/qsg-asa-api.html).
+It answers TLSSNI01 challenges using Cisco ASA boxes and installs the resulting certificates onto the ASAs. Both operations leverage the [Cisco ASA REST API](http://www.cisco.com/c/en/us/td/docs/security/asa/api/qsg-asa-api.html).
 
-Neither the plugin nor the Certbot client run *on* the ASA. Both run on a management station which speaks ACME to the Let's Encrypt service and HTTPS to the ASA boxes. The process looks something like this:
+Neither the plugin nor the Certbot client run *on* the ASA. They run on a management host which speaks ACME to the Let's Encrypt service and talks to the REST API on the ASA boxes over HTTPS. The process looks something like this:
 
 1. Certbot talks to Let's Encrypt, does it's usual account and key management stuff.
 2. Certbot learns from the certbot-asa plugin that the plugin prefers TLSSNI01 challenges.
