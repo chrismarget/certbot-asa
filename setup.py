@@ -22,7 +22,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'certbot.plugins': [
-            'xxx = certbot_asa.configurator:AsaConfigurator',
+            'asa = certbot_asa.configurator:AsaConfigurator',
         ],
     },
 )

@@ -35,13 +35,11 @@ class AsaDvsni(common.TLSSNI01):
     def cleanup(self, asa):
         import hashlib
         """Delete DVSNI challenge certificates/keys from ASA"""
-        print "begin dvsni.cleanup"
         for achall in self.achalls:
             z_domain_hash = hashlib.md5(achall.response(achall.account_key).z_domain)
             trustpoint_name = "acme_challenge_"+z_domain_hash.hexdigest()
             for a in asa:
                 a.remove_trustpoint(trustpoint_name)
-        print "end dvsni.cleanup"
 
     def perform(self, asa):
         """Perform a DVSNI challenge using Cisco ASA.

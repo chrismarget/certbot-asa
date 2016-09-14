@@ -21,6 +21,10 @@ class RestAsa(common.TLSSNI01):
             self.verify = False
 
 
+    def __str__(self):
+        return self.host
+
+
     def livetest(self):
         """Test TCP connect to REST API port 443"""
         import socket
@@ -36,7 +40,7 @@ class RestAsa(common.TLSSNI01):
 
     def get_trustpoint_keypair(self, trustpoint):
         if trustpoint not in self.list_trustpoints(certtype='identity'):
-            return False
+            return
         headers = {'Content-Type': 'application/json'}
         apiPath = "/api/certificate/identity/"+trustpoint
         apiUrl = "https://"+self.host+apiPath
@@ -44,19 +48,23 @@ class RestAsa(common.TLSSNI01):
         try: 
             keyPair = r.json()['keyPair']
         except: 
-            return False
+            return
         return keyPair
 
+
     def remove_trustpoint(self, trustpoint):
-        print "removing from "+self.host+" trustpoint "+trustpoint+" with noverify: "+str(self.noverify)
-        apiPath = "/api/certificate/identity/"+trustpoint
-        apiUrl = "https://"+self.host+apiPath
-        keyPair = self.get_trustpoint_keypair(trustpoint)
-        if trustpoint in self.list_trustpoints(certtype='identity') and keyPair != '<Default-RSA-Key>':
+        if trustpoint in self.list_trustpoints(certtype='identity'):
+            keyPair = self.get_trustpoint_keypair(trustpoint)
+            apiPath = "/api/certificate/identity/"+trustpoint
+            apiUrl = "https://"+self.host+apiPath
             r = requests.delete(apiUrl, auth=(self.user, self.passwd), verify=self.verify)
-            self.remove_keypair(keyPair)
+            if keyPair and keyPair != '<Default-RSA-Key>':
+                self.remove_keypair(keyPair)
         else:
+            apiPath = "/api/certificate/ca/"+trustpoint
+            apiUrl = "https://"+self.host+apiPath
             r = requests.delete(apiUrl, auth=(self.user, self.passwd), verify=self.verify)
+
 
     def remove_keypair(self, keypair_name):
         """Remove crypto keypair from ASA"""
@@ -64,7 +72,6 @@ class RestAsa(common.TLSSNI01):
         import json
         import urllib2
         import ssl
-        print "removing from "+self.host+" keypair "+keypair_name+" with noverify: "+str(self.noverify)
 
         headers = {'Content-Type': 'application/json'}
         api_path = "/api/certificate/keypair/"+keypair_name
@@ -106,21 +113,49 @@ class RestAsa(common.TLSSNI01):
 
     def cert_expired(self, trustpoint):
         import datetime
-        validityEndDate = self.get_cert_json(trustpoint)['validityEndDate']
+        try:
+            validityEndDate = self.get_cert_json(trustpoint)['validityEndDate']
+        except KeyError:
+            return False
         expires = datetime.datetime.strptime(validityEndDate, '%H:%M:%S %Z %b %d %Y')
-        now = datetime.datetime.now()
+        now = self.get_time()
         if now > expires:
             return True
         return False
 
 
-#    def purge_expired_certs(self, certtype=None, regex=None):
-#        return
+    def get_time(self):
+        import datetime
+        apiPath = '/api/monitoring/clock'
+        apiUrl = 'https://'+self.host+apiPath
+        headers = {'Content-Type': 'application/json'}
+        r = requests.get(apiUrl, headers=headers, auth=(self.user, self.passwd), verify=self.verify)
+        timestring = r.json()['time']+" "+r.json()['timeZone']+" "+r.json()['date']
+        now = datetime.datetime.strptime(timestring, '%H:%M:%S %Z %b %d %Y')
+        return now
+
+
+    def list_expired_certs(self, certtype=None):
+        tpl = self.list_trustpoints(certtype=certtype)
+        expired = []
+        for i in range(len(tpl)):
+            if self.cert_expired(tpl[i]):
+                expired.append(tpl[i])
+        return expired
+
+
+    def purge_expired_certs(self, certtype=None, regex='^.*$'):
+        import re
+        p = re.compile(regex)
+        expired = self.list_expired_certs(certtype)
+        purge = [ x for x in expired if p.match(x) ]
+        for i in purge:
+            self.remove_trustpoint(i)
+        return len(purge)
 
 
     def writemem(self):
         """Saves configuration"""
-        print ("begin writemem")
         apiPath = '/api/commands/writemem'
         apiUrl = 'https://'+self.host+apiPath
         headers = {'Content-Type': 'application/json'}
@@ -175,7 +210,6 @@ class RestAsa(common.TLSSNI01):
         import json
         import urllib2
         import ssl
-        print "importing certificate to "+self.host+" trustpoint "+trustpoint+" with noverify: "+str(self.noverify)
 
         headers = {'Content-Type': 'application/json'}
         api_path = "/api/certificate/identity"
