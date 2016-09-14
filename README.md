@@ -39,20 +39,20 @@ Neither the plugin nor the Certbot client run *on* the ASA. Both run on a manage
 
 I used CentOS 7, so these examples will go smoothly if you do too. But you can use whatever. It'd probably run on Windows.
 
-Freshen up and install some packages we'll use
+Freshen up and install some packages we'll need:
 ```
 sudo yum -y update
 sudo yum -y install git openssl-perl
 ```
 By default, python doesn't validate TLS certificates. Madness! Probably not
-necessary with the 'requests' module, but I've still got some 'urllib2' stuff
+necessary with the `requests` module, but I've still got some `urllib2` stuff
 knocking around in there. Don't want to send credentials to a bad guy!
 ```
 sudo sed -i 's/^verify=.*$/verify=enable/' /etc/python/cert-verification.cfg
 ```
 
 Create pointers to the ASA management interfaces in /etc/hosts or use DNS.
-These are the names we use for *management access*, which must be different
+These are the names we use for *management access*, so they must be different
 from the names for which we're getting certificates from Let's Encrypt.
 ```
 echo "192.168.100.11 my-asa-mgmt" | sudo tee -a /etc/hosts
@@ -72,5 +72,21 @@ Not much to it:
 * Allow API access from your Linux host with `http <address> <mask> <interface>` on the ASA(s).
 
 ### Test the REST API
+
+Now we'll be putting some of those building blocks together. This `curl` command tests:
+
+* Our credentials
+* The hostname resolution
+* Whether HTTPS access is allowed to the box
+* The API configuration
+
 ```curl -ksu <username>:<password> https://my-asa-mgmt/api/monitoring/serialnumber | sed 'a\'
+{"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}
 ```
+
+### Now enable TLS for the management connection
+
+The best thing to do here is probably to have your internal CA issue a certificate for **my-asa-mgmt**, then:
+* Load the certificate, keys and any intermediate certificates onto the ASA
+* Configure the ASA to use the new certificate with `ssl trust-point <trustpoint-name> domain my-asa-mgmt`
+I use a self-signed certificate generated on the ASA for this purpose. It's good for 10 years, which is handy
