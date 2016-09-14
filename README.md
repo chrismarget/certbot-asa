@@ -1,6 +1,6 @@
 # Cisco ASA plugin for Let's Encrypt client
 
-This is a plugin for the Let's Encrypt client: [Certbot](https://github.com/certbot/certbot).
+This is a plugin for the [Certbot](https://github.com/certbot/certbot) client from Let's Encrypt.
 
 It answers TLSSNI01 challenges with Cisco ASA boxes and installs the resulting certificates using the [Cisco ASA REST API](http://www.cisco.com/c/en/us/td/docs/security/asa/api/qsg-asa-api.html).
 
