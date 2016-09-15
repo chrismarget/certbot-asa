@@ -40,21 +40,27 @@ I used CentOS 7, so these examples will go smoothly if you do too. But you can u
 
 Freshen up and install some packages we'll need:
 
-```sudo yum -y update
-sudo yum -y install git openssl-perl```
+```
+sudo yum -y update
+sudo yum -y install git openssl-perl
+```
 
 By default, python doesn't validate TLS certificates. Madness! Probably not
 necessary with the `requests` module, but I've still got some `urllib2` stuff
 knocking around in there. Don't want to send credentials to a bad guy!
 
-```sudo sed -i 's/^verify=.*$/verify=enable/' /etc/python/cert-verification.cfg```
+```
+sudo sed -i 's/^verify=.*$/verify=enable/' /etc/python/cert-verification.cfg
+```
 
 Create pointers to the ASA management interfaces in `/etc/hosts` or use DNS.
 These are the names we use for *management access*, so they must be different
 from the names for which we're getting certificates from Let's Encrypt. We'll get
 certificates for these names shortly.
 
-```echo "192.168.100.11 asa-mgmt" | sudo tee -a /etc/hosts```
+```
+echo "192.168.100.11 asa-mgmt" | sudo tee -a /etc/hosts
+```
 
 ### Install / Enable the REST API
 
