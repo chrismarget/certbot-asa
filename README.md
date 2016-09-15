@@ -73,7 +73,7 @@ Not much to it:
 * If your ASA is configured with `aaa authorization command` check out [bug](https://bst.cloudapps.cisco.com/bugsearch/bug/CSCuv80223) and [bug](https://bst.cloudapps.cisco.com/bugsearch/bug/CSCuw60598). You can work around the issues by either:
   * Adding ENABLE_1 and ENABLE_15 to you AAA server (nobody needs to know the password - it's for command authorization only)
   * Temporarily removing `aaa authorization command` while the REST API starts up. Not great at reboot time.
-* Allow API access from your Linux host with `http <address> <mask> <interface>` on the ASA(s).
+* Allow API access from your Linux host on the ASA with `http <address> <mask> <interface>` on the ASA(s).
 
 ### Test the REST API
 
