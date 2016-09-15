@@ -54,7 +54,7 @@ These are the names we use for *management access*, so they must be different
 from the names for which we're getting certificates from Let's Encrypt. We'll get
 certificates for these names shortly.
 
-```echo "192.168.100.11 my-asa-mgmt" | sudo tee -a /etc/hosts```
+```echo "192.168.100.11 asa-mgmt" | sudo tee -a /etc/hosts```
 
 ### Install / Enable the REST API
 
@@ -78,15 +78,15 @@ Now we'll be putting some of those building blocks together. This `curl` command
 * Whether HTTPS access is allowed to the box
 * The API configuration
 
-<pre># <b>curl -ksu <username>:<password> https://my-asa-mgmt/api/monitoring/serialnumber | sed 'a\'</b>
+<pre># <b>curl -ksu <username>:<password> https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'</b>
 {"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}
 </pre>
 
 ### Now enable TLS for the management connection
 
-The best thing to do here is probably to have your internal CA issue a certificate for **my-asa-mgmt**, then:
+The best thing to do here is probably to have your internal CA issue a certificate for **asa-mgmt**, then:
 * Load the certificate, keys and any intermediate certificates onto the ASA
-* Configure the ASA to use the new certificate with `ssl trust-point <trustpoint-name> domain my-asa-mgmt`
+* Configure the ASA to use the new certificate with `ssl trust-point <trustpoint-name> domain asa-mgmt`
 I use a self-signed certificate generated on the ASA for this purpose. It's good for 10 years, which is handy
 
 ## Caveats
