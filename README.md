@@ -79,7 +79,8 @@ Now we'll be putting some of those building blocks together. We're testing:
 * The API configuration
 
 ```# curl -ksu <username>:<password> https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'
-{"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}```
+{"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}
+```
 
 If you got back the JSON blob with your ASA's serial number, then the API is working!
 
