@@ -54,9 +54,9 @@ knocking around in there. Don't want to send credentials to a bad guy!
 ```
 
 Create pointers to the ASA management interfaces in `/etc/hosts` or use DNS.
-These are the names we use for *management access*, so they must be different
-from the names for which we're getting certificates from Let's Encrypt. We'll get
-certificates for these names shortly.
+This is the name we'll use for *management access* to the ASA (via TLS) so it
+must be different from the name on the certificates we want from Let's Encrypt
+(chickens, eggs, etc...)
 
 ```
 # echo "192.168.100.11 asa-mgmt" | sudo tee -a /etc/hosts
@@ -66,9 +66,9 @@ certificates for these names shortly.
 
 Not much to it:
 
-* Download the API bundle from Cisco, copy it to the ASA
+* Download the API bundle from Cisco, copy it to the ASA.
 * Specify to the image with: `rest-api image disk0:/asa-restapi-etc-etc-etc`
-* Enable it with `rest-api agent`
+* Enable the API with `rest-api agent`
 * The API takes a few minutes to become available. I like to watch it with `debug rest-api agent`
 * If your ASA is configured with `aaa authorization command` check out [bug](https://bst.cloudapps.cisco.com/bugsearch/bug/CSCuv80223) and [bug](https://bst.cloudapps.cisco.com/bugsearch/bug/CSCuw60598). You can work around the issues by either:
   * Adding ENABLE_1 and ENABLE_15 to you AAA server (nobody needs to know the password - it's for command authorization only)
