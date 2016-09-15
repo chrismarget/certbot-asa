@@ -44,7 +44,7 @@ Freshen up and install some packages we'll need:
 sudo yum -y install git openssl-perl</b></pre>
 
 By default, python doesn't validate TLS certificates. Madness! Probably not
-necessary with the <pre>requests</pre> module, but I've still got some `urllib2` stuff
+necessary with the `requests` module, but I've still got some `urllib2` stuff
 knocking around in there. Don't want to send credentials to a bad guy!
 
 <pre><b>sudo sed -i 's/^verify=.*$/verify=enable/' /etc/python/cert-verification.cfg</b></pre>
