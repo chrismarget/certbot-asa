@@ -90,3 +90,7 @@ The best thing to do here is probably to have your internal CA issue a certifica
 * Load the certificate, keys and any intermediate certificates onto the ASA
 * Configure the ASA to use the new certificate with `ssl trust-point <trustpoint-name> domain my-asa-mgmt`
 I use a self-signed certificate generated on the ASA for this purpose. It's good for 10 years, which is handy
+
+## Caveats
+* Removal of keys
+* TLSSNI01 may be deprecated
