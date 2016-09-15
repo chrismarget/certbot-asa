@@ -63,7 +63,7 @@ Not much to it:
 * Download the API bundle from Cisco, copy it to the ASA
 * Specify to the image with: `rest-api image disk0:/asa-restapi-etc-etc-etc`
 * Enable it with `rest-api agent`
-* The api takes a few minutes to become available. I like to watch it with `debug rest-api agent`
+* The API takes a few minutes to become available. I like to watch it with `debug rest-api agent`
 * If your ASA is configured with `aaa authorization command` check out [bug](https://bst.cloudapps.cisco.com/bugsearch/bug/CSCuv80223) and [bug](https://bst.cloudapps.cisco.com/bugsearch/bug/CSCuw60598). You can work around the issues by either:
   * Adding ENABLE_1 and ENABLE_15 to you AAA server (nobody needs to know the password - it's for command authorization only)
   * Temporarily removing `aaa authorization command` while the REST API starts up. Not great at reboot time.
@@ -71,16 +71,17 @@ Not much to it:
 
 ### Test the REST API
 
-Now we'll be putting some of those building blocks together. This `curl` command tests:
+Now we'll be putting some of those building blocks together. We're testing:
 
 * Our credentials
 * The hostname resolution
 * Whether HTTPS access is allowed to the box
 * The API configuration
 
-<pre># <b>curl -ksu <username>:<password> https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'</b>
-{"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}
-</pre>
+```# curl -ksu <username>:<password> https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'</b>
+{"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}```
+
+If you got back the JSON blob with your ASA's serial number, then the API is working!
 
 ### Now enable TLS for the management connection
 
