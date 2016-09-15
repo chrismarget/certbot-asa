@@ -26,6 +26,7 @@ Neither the plugin nor the Certbot client run *on* the ASA. They run on a manage
 * A Linux host on which to run the Let's Encrypt client (certbot).
 * ASA credentials for use by the Linux host.
 * Accurate-ish clocks on both the Linux host and the ASA(s).
+* DNS records for the `asa.company.com` published on the Internet, where the Let's Encrypt validator can see it.
 * A *management name* by which the Linux host knows the ASAs. This must be different than the name end users use. Something like **asa-mgmt.company.com** or even just **asa-mgmt** is probably appropriate here. It does not need to use the physical management interface on the ASA. We just need a name by which we'll refer to the ASA.
 * A TLS certificate used for management access to the ASA(s). This certificate will be for the management name above, and must be trusted by the Linux host. It's how the Linux host ensures it's not sending credentials to an attacker. Options here include:
   * A self-signed certificate generated right on the ASA (that's what I do.)
