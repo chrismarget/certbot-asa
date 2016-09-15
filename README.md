@@ -91,7 +91,7 @@ Now we'll be putting some of those building blocks together. We're testing:
 
 If you got back the JSON blob with your ASA's serial number, then the API is working!
 
-### Now enable TLS for the management connection
+### Enable TLS for the management connection
 
 The objective here is for your Linux host to trust the certificate presented by the when we're talking to the REST API. Generating a self-signed certificate on the ASA is pretty straightforward:
 
