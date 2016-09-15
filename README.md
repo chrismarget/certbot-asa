@@ -50,7 +50,7 @@ knocking around in there. Don't want to send credentials to a bad guy!
 <pre><b>sudo sed -i 's/^verify=.\*$/verify=enable/' /etc/python/cert-verification.cfg</b></pre>
 
 Create pointers to the ASA management interfaces in /etc/hosts or use DNS.
-These are the names we use for <i>management access</i>, so they must be different
+These are the names we use for *management access*, so they must be different
 from the names for which we're getting certificates from Let's Encrypt.
 
 <pre>echo "192.168.100.11 my-asa-mgmt" | sudo tee -a /etc/hosts</pre>
