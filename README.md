@@ -78,7 +78,8 @@ Now we'll be putting some of those building blocks together. We're testing:
 * Whether HTTPS access is allowed to the box
 * The API configuration
 
-```# curl -ksu <username>:<password> https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'
+```
+# curl -ksu <username>:<password> https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'
 {"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}
 ```
 
