@@ -46,7 +46,6 @@ By default, python doesn't validate TLS certificates. Madness! Probably not
 necessary with the `requests` module, but I've still got some `urllib2` stuff
 knocking around in there. Don't want to send credentials to a bad guy!
 
-<pre><b>sudo sed -i 's/^verify=.*$/verify=enable/' /etc/python/cert-verification.cfg</b></pre>
 
 Create pointers to the ASA management interfaces in /etc/hosts or use DNS.
 These are the names we use for <i>management access</i>, so they must be different
