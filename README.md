@@ -80,7 +80,8 @@ Now we'll be putting some of those building blocks together. This `curl` command
 * Whether HTTPS access is allowed to the box
 * The API configuration
 
-```curl -ksu <username>:<password> https://my-asa-mgmt/api/monitoring/serialnumber | sed 'a\'
+```
+curl -ksu <username>:<password> https://my-asa-mgmt/api/monitoring/serialnumber | sed 'a\'
 {"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}
 ```
 
