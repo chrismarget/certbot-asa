@@ -39,10 +39,9 @@ Neither the plugin nor the Certbot client run *on* the ASA. They run on a manage
 I used CentOS 7, so these examples will go smoothly if you do too. But you can use whatever. It'd probably run on Windows.
 
 Freshen up and install some packages we'll need:
-<pre><b>sudo yum -y update
-sudo yum -y install git openssl-perl</b></pre>
+```sudo yum -y update
+sudo yum -y install git openssl-perl```
 
-`foo`
 By default, python doesn't validate TLS certificates. Madness! Probably not
 necessary with the `requests` module, but I've still got some `urllib2` stuff
 knocking around in there. Don't want to send credentials to a bad guy!
