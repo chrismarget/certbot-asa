@@ -41,16 +41,16 @@ I used CentOS 7, so these examples will go smoothly if you do too. But you can u
 Freshen up and install some packages we'll need:
 
 ```
-sudo yum -y update
-sudo yum -y install git openssl-perl
+# sudo yum -y update
+# sudo yum -y install git openssl-perl
 ```
 
 By default, python doesn't validate TLS certificates. Madness! Probably not
-necessary with the `requests` module, but I've still got some `urllib2` stuff
+necessary with the `requests` module, but there's some `urllib2` stuff still
 knocking around in there. Don't want to send credentials to a bad guy!
 
 ```
-sudo sed -i 's/^verify=.*$/verify=enable/' /etc/python/cert-verification.cfg
+# sudo sed -i 's/^verify=.*$/verify=enable/' /etc/python/cert-verification.cfg
 ```
 
 Create pointers to the ASA management interfaces in `/etc/hosts` or use DNS.
@@ -59,7 +59,7 @@ from the names for which we're getting certificates from Let's Encrypt. We'll ge
 certificates for these names shortly.
 
 ```
-echo "192.168.100.11 asa-mgmt" | sudo tee -a /etc/hosts
+# echo "192.168.100.11 asa-mgmt" | sudo tee -a /etc/hosts
 ```
 
 ### Install / Enable the REST API
@@ -81,7 +81,7 @@ Now we'll be putting some of those building blocks together. We're testing:
 
 * Our credentials
 * The hostname resolution
-* Whether HTTPS access is allowed to the box
+* Whether HTTPS access is allowed to the ASA
 * The API configuration
 
 ```
@@ -93,9 +93,43 @@ If you got back the JSON blob with your ASA's serial number, then the API is wor
 
 ### Now enable TLS for the management connection
 
+The objective here is for your Linux host to trust the certificate presented by the when we're talking to the REST API. Generating a self-signed certificate on the ASA is pretty straightforward:
+
+```
+crypto key generate rsa label mgmt-tls-2048-bit-key modulus 2048
+crypto ca trustpoint mgmt-selfsigned-cert
+ enrollment self
+ fqdn none
+ subject-name CN=asa-mgmt
+ keypair mgmt-tls-2048-bit-key
+ crl configure
+crypto ca enroll mgmt-selfsigned-cert noconfirm
+ssl trust-point mgmt-selfsigned-cert domain asa-mgmt
+```
+
+Now we need to collect that certificate on the Linux host. Do this:
+
+```
+# :| openssl s_client -showcerts -connect asa-mgmt:443 -servername asa-mgmt | openssl x509 | sudo tee -a /etc/pki/tls/certs/asa-mgmt.pem
+```
+
+Now we have a local copy of the ASA's self signed certificate. You can take a peek at it with `openssl x509 -in /etc/pki/tls/certs/asa-mgmt.pem -noout -text`
+
+Test the API again, but this time with certificate validation:
+
+```
+curl -su <username>:<password> --cacert /etc/pki/tls/certs/asa-mgmt.pem https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'
+{"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}
+```
+
+If we got the serial number back *without* using the `-k` (don't verify certificates) option, then TLS validation checks out. Let's move on to Let's Encrypt!
+
+
+
 The best thing to do here is probably to have your internal CA issue a certificate for **asa-mgmt**, then:
 * Load the certificate, keys and any intermediate certificates onto the ASA
-* Configure the ASA to use the new certificate with `ssl trust-point <trustpoint-name> domain asa-mgmt`
+* Configure the ASA to use the new certificate when clients call it by name: `ssl trust-point <trustpoint-name> domain asa-mgmt`
+* Load the root certificate onto your linux host. On CentOS, copy the root certificate to `/etc/pki/ca-trust/source/anchors` and then execute `sudo update-ca-trust`. This 
 I use a self-signed certificate generated on the ASA for this purpose. It's good for 10 years, which is handy
 
 ## Caveats
