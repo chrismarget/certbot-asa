@@ -34,6 +34,8 @@ Neither the plugin nor the Certbot client run *on* the ASA. They run on a manage
 
 ## Setup
 
+`foo`
+
 ### Install / Configure CentOS 7
 
 I used CentOS 7, so these examples will go smoothly if you do too. But you can use whatever. It'd probably run on Windows.
@@ -46,6 +48,7 @@ By default, python doesn't validate TLS certificates. Madness! Probably not
 necessary with the `requests` module, but I've still got some `urllib2` stuff
 knocking around in there. Don't want to send credentials to a bad guy!
 
+<pre><b>sudo sed -i 's/^verify=.*$/verify=enable/' /etc/python/cert-verification.cfg</b></pre>
 
 Create pointers to the ASA management interfaces in /etc/hosts or use DNS.
 These are the names we use for <i>management access</i>, so they must be different
