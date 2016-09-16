@@ -160,7 +160,7 @@ $ sudo firewall-cmd --remove-port=443/tcp
 $ sudo rm -rf /tmp/certbot-conf /tmp/certbot-work /tmp/certbot-logs
 ```
 
-### Install Certbot-ASA
+### Install The Certbot-ASA Plugin
 
 The plugin can run without any privilege, so I like to create a non-root user for that purpose:
 
