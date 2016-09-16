@@ -109,7 +109,7 @@ ssl trust-point mgmt-selfsigned-cert domain asa-mgmt
 ```
 
 Now we need to collect that certificate on the Linux host. Do this for each ASA.
-Change the filename argument to the `tee` command so that different ASA certs
+Change the `tee` command's filename argument so that different ASA certs
 wind up in different files:
 
 ```
