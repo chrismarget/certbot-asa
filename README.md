@@ -180,6 +180,10 @@ sudo python /tmp/certbot-asa/setup.py install
 git clone https://github.com/marcan/certbot-external /tmp/certbot-external
 sudo python /tmp/certbot-external/setup.py install
 
+# Download the plugin
+git clone https://github.com/plesk/letsencrypt-plesk /tmp/letsencrypt-plesk
+sudo python /tmp/letsencrypt-plesk/setup.py install
+
 ```
 
 

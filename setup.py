@@ -19,7 +19,8 @@ setup(
     author_email='certbot-asa@marget.com',
     license='Apache License 2.0',
     install_requires=install_requires,
-    packages=find_packages(),
+    package_dir = {'':'certbot_asa'},
+    packages=find_packages('certbot_asa'),
     entry_points={
         'certbot.plugins': [
             'asa = certbot_asa.configurator:AsaConfigurator',
