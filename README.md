@@ -114,7 +114,10 @@ Now we need to collect that certificate on the Linux host. Do this:
 # :| openssl s_client -showcerts -connect asa-mgmt:443 -servername asa-mgmt | openssl x509 | sudo tee -a /etc/pki/tls/certs/asa-mgmt.pem
 ```
 
-Now we have a local copy of the ASA's self signed certificate. You can take a peek at it with `openssl x509 -in /etc/pki/tls/certs/asa-mgmt.pem -noout -text`
+Now we have a local copy of the ASA's self signed certificate. You can take a peek at it with
+```
+openssl x509 -in /etc/pki/tls/certs/asa-mgmt.pem -noout -text
+```
 
 Test the API again, but this time with certificate validation:
 
@@ -133,6 +136,10 @@ The best thing to do here is probably to have your internal CA issue a certifica
 * Load the root certificate onto your linux host. On CentOS, copy the root certificate to `/etc/pki/ca-trust/source/anchors` and then execute `sudo update-ca-trust`. This 
 I use a self-signed certificate generated on the ASA for this purpose. It's good for 10 years, which is handy
 
+## Command Line Options
+Command line usage
+
 ## Caveats
 * Removal of keys
 * TLSSNI01 may be deprecated
+
