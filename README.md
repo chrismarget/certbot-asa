@@ -146,6 +146,7 @@ $ sudo firewall-cmd --add-port=443/tcp
 #
 # Test certbot:
 $ sudo certbot certonly \
+  --text \
   --standalone \
   --register-unsafely-without-email \
   --agree-tos \
@@ -182,8 +183,18 @@ $ (cd /tmp/certbot-asa; sudo python /tmp/certbot-asa/setup.py install)
 
 #### Configure the plugin
 
+We previously dumped the ASA's self-signed certificate into a file in `/etc/pki/tls/certs`.
+The python `requests` module only allows us to specify a single pointer for trusted root
+certificates. We could point at the file, but it's nice to point at the directory instead.
+`c_rehash` makes that possible by filling the directory with symlink pointers which help
+the requests module find its way:
+
+```
+sudo c_rehash /etc/pki/tls/certs
+```
+
 The plugin needs your ASA credentials. It expects to find them in a file
-named asa_creds.txt in  certbot's config-dir. The file must be chmod go-rwx.
+named asa_creds.txt in certbot's config-dir. The file must be chmod go-rwx.
 One line per ASA with the following fields, delimited by ';' characters.
 
 * hostname
@@ -194,25 +205,35 @@ The hostname must be the 'management name' we used when setting up the
 management TLS certificate. 
 
 ```
-$ (umask 0077; mkdir -p /tmp/le/conf; touch /tmp/le/conf/asa_creds.txt)
-$ echo "asa-mgmt;username;password" >> /tmp/le/conf/asa_creds.txt
+$ sudo su certbot-asa -c '(umask 0077; touch /etc/letsencrypt/asa_creds.txt)'
+$ echo "asa-mgmt;username;password" | sudo tee -a /etc/letsencrypt/asa_creds.txt
 ```
 
+Create a certbot configuration file:
 
-
-$ cat > /tmp/certbot.conf
+```
+$ sudo su certbot-asa -c '(umask 0077; touch /etc/letsencrypt/certbot.conf)'
+$ sudo tee -a /etc/letsencrypt/certbot.conf <<< "$(cat << EOF
 server = https://acme-staging.api.letsencrypt.org/directory
-config-dir = /tmp/certbot/conf
-work-dir = /tmp/certbot/conf
-logs-dir = /tmp/certbot/logs
 email = somebody@somewhere.com
-domains = letsencrypt-test.fragmentationneeded.net
 text = True
 agree-tos = True
 debug = True
 verbose = True
-authenticator = standalone
+EOF
+)"
+```
 
+## Run the plugin!
+
+We're going to get a certificate for asa.company.com installed onto the box we call asa-mgmt
+
+```
+certbot -a certbot-asa:asa -d asa.company.com -c /etc/letsencrypt/certbot.conf --certbot-asa:asa-host asa-mgmt --certbot-asa:asa-castore /etc/pki/tls/certs
+sudo su certbot-asa -c '
+certbot -a certbot-asa:asa -d one.mlvpn.xyz -c /etc/letsencrypt/certbot.conf --certbot-asa:asa-host asa-mgmt --certbot-asa:asa-castore /etc/pki/tls/certs
+'
+```
 
 
 
@@ -222,6 +243,19 @@ authenticator = standalone
 Command line usage
 
 ## Caveats
-* Removal of keys
-* TLSSNI01 may be deprecated
 
+### What gets installed may get removed
+
+The plugin will install trustpoints, RSA keypairs and `ssl trust-point <something> domain <whatever>` configurations onto your ASA.
+It will also remove them as they expire. Don't do something silly like use one of these keypairs for your SSH service or a handcrafted
+trustpoint because they're subject to removal.
+
+### TLSSNI01 May Be Deprecated Soon
+
+There's a problem with the TLSSNI01 challenge. It's not one that will affect the
+ security or quality of your certificates, nor put your machine at risk. Rather, 
+the problem is that some other device (not your ASA) could be tricked into 
+satisfying the challenge, which might lead to Let's Encrypt erroneously issuing
+certificates for that device's domain. The only thing to worry about here is
+whether Let's Encrypt sunsets TLSSNI01 for TLSSNI02 before I get around to
+updating the plugin.
