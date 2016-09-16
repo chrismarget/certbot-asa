@@ -42,8 +42,8 @@ I used CentOS 7, so these examples will go smoothly if you do too. But you can u
 Freshen up and install some packages we'll need:
 
 ```
-# sudo yum -y update
-# sudo yum -y install git openssl-perl
+$ sudo yum -y update
+$ sudo yum -y install git openssl-perl
 ```
 
 By default, python doesn't validate TLS certificates. Madness! Probably not
@@ -51,16 +51,16 @@ necessary with the `requests` module, but there's some `urllib2` stuff still
 knocking around in there. Don't want to send credentials to a bad guy!
 
 ```
-# sudo sed -i 's/^verify=.*$/verify=enable/' /etc/python/cert-verification.cfg
+$ sudo sed -i 's/^verify=.*$/verify=enable/' /etc/python/cert-verification.cfg
 ```
 
-Create pointers to the ASA management interfaces in `/etc/hosts` or use DNS.
+Create pointers to the ASA management interface in `/etc/hosts` or use DNS.
 This is the name we'll use for *management access* to the ASA (via TLS) so it
 must be different from the name on the certificates we want from Let's Encrypt
-(chickens, eggs, etc...)
+(chickens, eggs, etc...) Do this for every ASA you'll be managing.
 
 ```
-# echo "192.168.100.11 asa-mgmt" | sudo tee -a /etc/hosts
+$ echo "192.168.100.11 asa-mgmt" | sudo tee -a /etc/hosts
 ```
 
 ### Install / Enable the REST API
@@ -86,7 +86,7 @@ Now we'll be putting some of those building blocks together. We're testing:
 * The API configuration
 
 ```
-# curl -ksu <username>:<password> https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'
+$ curl -ksu <username>:<password> https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'
 {"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}
 ```
 
@@ -108,33 +108,37 @@ crypto ca enroll mgmt-selfsigned-cert noconfirm
 ssl trust-point mgmt-selfsigned-cert domain asa-mgmt
 ```
 
-Now we need to collect that certificate on the Linux host. Do this:
+Now we need to collect that certificate on the Linux host. Do this for each ASA.
+Change the filename argument to the `tee` command so that different ASA certs
+wind up in different files:
 
 ```
-# :| openssl s_client -showcerts -connect asa-mgmt:443 -servername asa-mgmt | openssl x509 | sudo tee -a /etc/pki/tls/certs/asa-mgmt.pem
+$ :| openssl s_client -showcerts -connect asa-mgmt:443 -servername vpnlab1 | openssl x509 | sudo tee -a /etc/pki/tls/certs/asa-mgmt.pem
 ```
 
 Now we have a local copy of the ASA's self signed certificate. You can take a peek at it with
 ```
-openssl x509 -in /etc/pki/tls/certs/asa-mgmt.pem -noout -text
+$ openssl x509 -in /etc/pki/tls/certs/asa-mgmt.pem -noout -text
 ```
 
 Test the API again, but this time with certificate validation:
 
 ```
-curl -su <username>:<password> --cacert /etc/pki/tls/certs/asa-mgmt.pem https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'
+$ curl -su <username>:<password> --cacert /etc/pki/tls/certs/asa-mgmt.pem https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'
 {"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}
 ```
 
-If we got the serial number back *without* using the `-k` (don't verify certificates) option, then TLS validation checks out. Let's move on to Let's Encrypt!
+If we got the serial number back *without* using the `-k` (don't verify certificates) option, then TLS validation checks out. Let's move on to installing certbot.
+
+### Install Certbot
+
+```
+$ sudo yum install epel-release
+$ sudo yum-config-manager --disable epel
+$ sudo yum -y --enablerepo=epel install python-certbot-apache
+```
 
 
-
-The best thing to do here is probably to have your internal CA issue a certificate for **asa-mgmt**, then:
-* Load the certificate, keys and any intermediate certificates onto the ASA
-* Configure the ASA to use the new certificate when clients call it by name: `ssl trust-point <trustpoint-name> domain asa-mgmt`
-* Load the root certificate onto your linux host. On CentOS, copy the root certificate to `/etc/pki/ca-trust/source/anchors` and then execute `sudo update-ca-trust`. This 
-I use a self-signed certificate generated on the ASA for this purpose. It's good for 10 years, which is handy
 
 ## Command Line Options
 Command line usage
