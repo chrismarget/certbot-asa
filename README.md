@@ -166,12 +166,13 @@ The plugin can run without any privilege, so I like to create a non-root user fo
 
 ```
 # Add the user
-sudo useradd -r certbot-asa
+$ sudo useradd -r certbot-asa
 #
 # Give the letsencrypt config, work and log directories to the new user.
-sudo mkdir -pm 0700 /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
-sudo chown certbot-asa:certbot-asa /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
+$ sudo mkdir -pm 0700 /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
+$ sudo chown certbot-asa:certbot-asa /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
 ```
+
 Download and install the plugin:
 
 ```
