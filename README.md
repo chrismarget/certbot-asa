@@ -133,10 +133,49 @@ If we got the serial number back *without* using the `-k` (don't verify certific
 ### Install Certbot
 
 ```
-$ sudo yum install -y epel-release yum-utils
+$ sudo yum -y install epel-release yum-utils
 $ sudo yum-config-manager --disable epel
 $ sudo yum -y --enablerepo=epel install python-certbot-apache
 ```
+
+If the test machine is internet-facing with a DNS record pointing at it and TCP/443 exposed, then we can test `certbot` without the ASA plugin. Doing so requires root privilege because the `boulder` (Let's Encrypt's CA component) validation bits connect to us on a privileged port. Running `certbot` with the `certbot-asa` plugin does not require root privilege. So, let's test it out as root if that's interesting/possible:
+
+```
+# Open up incoming connections in iptables:
+$ sudo firewall-cmd --add-port=443/tcp
+#
+# Test certbot:
+$ sudo certbot certonly \
+  --standalone \
+  --register-unsafely-without-email \
+  --agree-tos \
+  --test-cert \
+  --config-dir /tmp/certbot-conf \
+  --work-dir /tmp/certbot-work \
+  --logs-dir /tmp/certbot-logs \
+  -d <linux host's name in internet-facing DNS>
+#
+# Cleanup
+sudo firewall-cmd --remove-port=443/tcp
+sudo rm -rf /tmp/certbot-conf /tmp/certbot-work /tmp/certbot-logs
+```
+
+
+$ cat > /tmp/certbot.conf
+server = https://acme-staging.api.letsencrypt.org/directory
+config-dir = /tmp/certbot/conf
+work-dir = /tmp/certbot/conf
+logs-dir = /tmp/certbot/logs
+email = somebody@somewhere.com
+domains = letsencrypt-test.fragmentationneeded.net
+text = True
+agree-tos = True
+debug = True
+verbose = True
+authenticator = standalone
+
+
+
 
 
 
