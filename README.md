@@ -180,17 +180,20 @@ $ git clone https://chrismarget:xxxxx@github.com/chrismarget/certbot-asa /tmp/ce
 $ (cd /tmp/certbot-asa; sudo python /tmp/certbot-asa/setup.py install)
 ```
 
-Configure the plugin:
+#### Configure the plugin
+
+The plugin needs your ASA credentials. It expects to find them in a file
+named asa_creds.txt in  certbot's config-dir. The file must be chmod go-rwx.
+One line per ASA with the following fields, delimited by ';' characters.
+
+* hostname
+* username
+* password
+
+The hostname must be the 'management name' we used when setting up the
+management TLS certificate. 
 
 ```
-# The plugin needs your ASA credentials. It expects to find them in a file
-# named asa_creds.txt in  certbot's config-dir. The file must be chmod go-rwx.
-# One line per ASA, delimited by ';'
-# The hostname must be the 'management name' we used when setting up the
-# management TLS certificate:
-#
-#  hostname;username;password
-#
 $ (umask 0077; mkdir -p /tmp/le/conf; touch /tmp/le/conf/asa_creds.txt)
 $ echo "asa-mgmt;username;password" >> /tmp/le/conf/asa_creds.txt
 ```
