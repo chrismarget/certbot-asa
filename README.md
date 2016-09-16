@@ -133,7 +133,7 @@ If we got the serial number back *without* using the `-k` (don't verify certific
 ### Install Certbot
 
 ```
-$ sudo yum install epel-release
+$ sudo yum install -y epel-release yum-utils
 $ sudo yum-config-manager --disable epel
 $ sudo yum -y --enablerepo=epel install python-certbot-apache
 ```
