@@ -171,19 +171,12 @@ sudo useradd -r certbot-asa
 # Give the letsencrypt config, work and log directories to the new user.
 sudo mkdir -pm 0700 /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
 sudo chown certbot-asa:certbot-asa /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
-#
-# Download the plugin
+```
+Download and install the plugin:
+
+```
 git clone https://chrismarget:xxxxx@github.com/chrismarget/certbot-asa /tmp/certbot-asa
 (cd /tmp/certbot-asa; sudo python /tmp/certbot-asa/setup.py install)
-
-# Download the plugin
-git clone https://github.com/marcan/certbot-external /tmp/certbot-external
-sudo python /tmp/certbot-external/setup.py install
-
-# Download the plugin
-git clone https://github.com/plesk/letsencrypt-plesk /tmp/letsencrypt-plesk
-sudo python /tmp/letsencrypt-plesk/setup.py install
-
 ```
 
 
