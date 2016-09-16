@@ -156,8 +156,8 @@ $ sudo certbot certonly \
   -d <linux host's name in internet-facing DNS>
 #
 # Cleanup
-sudo firewall-cmd --remove-port=443/tcp
-sudo rm -rf /tmp/certbot-conf /tmp/certbot-work /tmp/certbot-logs
+$ sudo firewall-cmd --remove-port=443/tcp
+$ sudo rm -rf /tmp/certbot-conf /tmp/certbot-work /tmp/certbot-logs
 ```
 
 ### Install Certbot-ASA
@@ -175,8 +175,8 @@ sudo chown certbot-asa:certbot-asa /etc/letsencrypt /var/lib/letsencrypt /var/lo
 Download and install the plugin:
 
 ```
-git clone https://chrismarget:xxxxx@github.com/chrismarget/certbot-asa /tmp/certbot-asa
-(cd /tmp/certbot-asa; sudo python /tmp/certbot-asa/setup.py install)
+$ git clone https://chrismarget:xxxxx@github.com/chrismarget/certbot-asa /tmp/certbot-asa
+$ (cd /tmp/certbot-asa; sudo python /tmp/certbot-asa/setup.py install)
 ```
 
 Configure the plugin:
@@ -190,8 +190,8 @@ Configure the plugin:
 #
 #  hostname;username;password
 #
-(umask 0077; mkdir -p /tmp/le/conf; touch /tmp/le/conf/asa_creds.txt)
-echo "asa-mgmt;username;password" >> /tmp/le/conf/asa_creds.txt
+$ (umask 0077; mkdir -p /tmp/le/conf; touch /tmp/le/conf/asa_creds.txt)
+$ echo "asa-mgmt;username;password" >> /tmp/le/conf/asa_creds.txt
 ```
 
 
