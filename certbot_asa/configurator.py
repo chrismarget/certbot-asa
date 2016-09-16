@@ -48,7 +48,7 @@ class AsaConfigurator(common.Plugin):
         if self.conf('credfile'):
             self.credfile = self.conf('credfile')
         else:
-            self.credfile = os.path.join(self.config.conf_dir, 'asa_creds.txt')
+            self.credfile = os.path.join(self.config.config_dir, 'asa_creds.txt')
 
         self.asa = {}
         self.asacreds = {}
