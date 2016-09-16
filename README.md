@@ -113,7 +113,7 @@ Change the filename argument to the `tee` command so that different ASA certs
 wind up in different files:
 
 ```
-$ :| openssl s_client -showcerts -connect asa-mgmt:443 -servername vpnlab1 | openssl x509 | sudo tee -a /etc/pki/tls/certs/asa-mgmt.pem
+$ :| openssl s_client -showcerts -connect asa-mgmt:443 -servername asa-mgmt | openssl x509 | sudo tee -a /etc/pki/tls/certs/asa-mgmt.pem
 ```
 
 Now we have a local copy of the ASA's self signed certificate. You can take a peek at it with
@@ -178,6 +178,22 @@ Download and install the plugin:
 git clone https://chrismarget:xxxxx@github.com/chrismarget/certbot-asa /tmp/certbot-asa
 (cd /tmp/certbot-asa; sudo python /tmp/certbot-asa/setup.py install)
 ```
+
+Configure the plugin:
+
+```
+# The plugin needs your ASA credentials. It expects to find them in a file
+# named asa_creds.txt in  certbot's config-dir. The file must be chmod go-rwx.
+# One line per ASA, delimited by ';'
+# The hostname must be the 'management name' we used when setting up the
+# management TLS certificate:
+#
+#  hostname;username;password
+#
+(umask 0077; mkdir -p /tmp/le/conf; touch /tmp/le/conf/asa_creds.txt)
+echo "asa-mgmt;username;password" >> /tmp/le/conf/asa_creds.txt
+```
+
 
 
 $ cat > /tmp/certbot.conf
