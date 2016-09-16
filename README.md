@@ -160,6 +160,28 @@ sudo firewall-cmd --remove-port=443/tcp
 sudo rm -rf /tmp/certbot-conf /tmp/certbot-work /tmp/certbot-logs
 ```
 
+### Install Certbot-ASA
+
+The plugin can run without any privilege, so I like to create a non-root user for that purpose:
+
+```
+# Add the user
+sudo useradd -r certbot-asa
+#
+# Give the letsencrypt config, work and log directories to the new user.
+sudo mkdir -pm 0700 /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
+sudo chown certbot-asa:certbot-asa /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
+#
+# Download the plugin
+git clone https://chrismarget:xxxxx@github.com/chrismarget/certbot-asa /tmp/certbot-asa
+sudo python /tmp/certbot-asa/setup.py install
+
+# Download the plugin
+git clone https://github.com/marcan/certbot-external /tmp/certbot-external
+sudo python /tmp/certbot-external/setup.py install
+
+```
+
 
 $ cat > /tmp/certbot.conf
 server = https://acme-staging.api.letsencrypt.org/directory
