@@ -144,7 +144,7 @@ If the test machine is internet-facing with a DNS record pointing at it and has 
 ```
 # Open up incoming connections in iptables:
 $ sudo firewall-cmd --add-port=443/tcp
-#
+
 # Test certbot:
 $ sudo certbot certonly \
   --text \
@@ -156,7 +156,7 @@ $ sudo certbot certonly \
   --work-dir /tmp/certbot-work \
   --logs-dir /tmp/certbot-logs \
   -d <linux host's name in internet-facing DNS>
-#
+
 # Cleanup
 $ sudo firewall-cmd --remove-port=443/tcp
 $ sudo rm -rf /tmp/certbot-conf /tmp/certbot-work /tmp/certbot-logs
