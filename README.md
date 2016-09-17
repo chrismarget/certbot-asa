@@ -116,7 +116,8 @@ wind up in different files:
 $ :| openssl s_client -showcerts -connect asa-mgmt:443 -servername asa-mgmt | openssl x509 | sudo tee -a /etc/pki/tls/certs/asa-mgmt.pem
 ```
 
-Now we have a local copy of the ASA's self signed certificate. You can take a peek at it with
+Now we have a local copy of the ASA's self signed certificate. You can take a peek at it with:
+
 ```
 $ openssl x509 -in /etc/pki/tls/certs/asa-mgmt.pem -noout -text
 ```
@@ -135,10 +136,10 @@ If we got the serial number back *without* using the `-k` (don't verify certific
 ```
 $ sudo yum -y install epel-release yum-utils
 $ sudo yum-config-manager --disable epel
-$ sudo yum -y --enablerepo=epel install python-certbot-apache
+$ sudo yum -y --enablerepo=epel install python-certbot-apache python-pip
 ```
 
-If the test machine is internet-facing with a DNS record pointing at it and TCP/443 exposed, then we can test `certbot` without the ASA plugin. Doing so requires root privilege because the `boulder` (Let's Encrypt's CA component) validation bits connect to us on a privileged port. Running `certbot` with the `certbot-asa` plugin does not require root privilege. So, let's test it out as root if that's interesting/possible:
+If the test machine is internet-facing with a DNS record pointing at it and has TCP/443 exposed, then we can test `certbot` without the ASA plugin. Doing so requires root privilege because the `boulder` (Let's Encrypt's CA component) validation bits connect to us on a privileged port. Running `certbot` with the `certbot-asa` plugin does not require root privilege. So, let's test it out as root if that's interesting/possible:
 
 ```
 # Open up incoming connections in iptables:
@@ -163,13 +164,23 @@ $ sudo rm -rf /tmp/certbot-conf /tmp/certbot-work /tmp/certbot-logs
 
 ### Install The Certbot-ASA Plugin
 
+#### Plugin Prerequisites
+
+We need requests [2.9.0](https://github.com/kennethreitz/requests/blob/master/HISTORY.rst#290-2015-12-15) or later for sensible certificate validation.
+
+'''
+sudo pip install 'requests>=2.9.0'
+'''
+
 The plugin can run without any privilege, so I like to create a non-root user for that purpose:
 
 ```
-# Add the user
 $ sudo useradd -r certbot-asa
-#
-# Give the letsencrypt config, work and log directories to the new user.
+```
+
+Next, give the letsencrypt config, work and log directories to the new user.
+
+```
 $ sudo mkdir -pm 0700 /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
 $ sudo chown certbot-asa:certbot-asa /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
 ```
