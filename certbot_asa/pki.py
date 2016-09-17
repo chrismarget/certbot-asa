@@ -89,6 +89,6 @@ class certs_from_pemfile():
                     data = d.decode(self.certs[i].get_extension(e).get_data())[0]
                     ca = False
                     if data:
-                        ca = data.getComponentByPosition(0).hasValue()
+                        ca = data.getComponentByPosition(0)
                     if not ca:
                         return self.certs[i]

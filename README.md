@@ -169,7 +169,7 @@ $ sudo rm -rf /tmp/certbot-conf /tmp/certbot-work /tmp/certbot-logs
 We need requests [2.9.0](https://github.com/kennethreitz/requests/blob/master/HISTORY.rst#290-2015-12-15) or later for sensible certificate validation.
 
 ```
-sudo pip install 'requests>=2.9.0'
+$ sudo pip install 'requests>=2.9.0'
 ```
 
 The plugin can run without any privilege, so I like to create a non-root user for that purpose:

@@ -166,7 +166,6 @@ class RestAsa(common.TLSSNI01):
 
 
     def list_trustpoints(self, certtype=None):
-        print("begin list_trustpoints(certtype="+str(certtype)+")")
         """Returns list of trustpoints of the specified type, or all trustpoints"""
         requests.packages.urllib3.disable_warnings()
         trustpoints = []
