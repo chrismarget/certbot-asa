@@ -136,7 +136,7 @@ If we got the serial number back *without* using the `-k` (don't verify certific
 ```
 $ sudo yum -y install epel-release yum-utils
 $ sudo yum-config-manager --disable epel
-$ sudo yum -y --enablerepo=epel install python-certbot-apache python-pip
+$ sudo yum -y --enablerepo=epel install python-certbot-apache
 ```
 
 If the test machine is internet-facing with a DNS record pointing at it and has TCP/443 exposed, then we can test `certbot` without the ASA plugin. Doing so requires root privilege because the `boulder` (Let's Encrypt's CA component) validation bits connect to us on a privileged port. Running `certbot` with the `certbot-asa` plugin does not require root privilege. So, let's test it out as root if that's interesting/possible:
@@ -166,9 +166,11 @@ $ sudo rm -rf /tmp/certbot-conf /tmp/certbot-work /tmp/certbot-logs
 
 #### Plugin Prerequisites
 
-We need requests [2.9.0](https://github.com/kennethreitz/requests/blob/master/HISTORY.rst#290-2015-12-15) or later for sensible certificate validation.
+We need requests [2.9.0](https://github.com/kennethreitz/requests/blob/master/HISTORY.rst#290-2015-12-15)
+or later for sensible certificate validation. We'll use `pip` to get it.
 
 ```
+$ sudo yum -y --enablerepo=epel install python-pip
 $ sudo pip install 'requests>=2.9.0'
 ```
 
@@ -272,7 +274,7 @@ There are a number of command line options supported by the plugin. They all tak
   --certbot-asa:asa-credfile <file>
            Optional.
            Specify the location of the ASA credentials file. Defaults to
-           <config- dir>/asa_creds.txt
+           <config-dir>/asa_creds.txt
   --certbot-asa:asa-creddelim <string>
            Optional.
            ASA credentials file delimiter (default: ';')
@@ -290,7 +292,7 @@ There are a number of command line options supported by the plugin. They all tak
 
 ## Caveats
 
-### What gets installed may get removed
+### What Gets Installed Will Get Removed
 
 The plugin will install trustpoints, RSA keypairs and `ssl trust-point <something> domain <whatever>` configurations onto your ASA.
 It will also remove them as they expire. Don't do something silly like use one of these keypairs for your SSH service or a handcrafted
@@ -301,7 +303,7 @@ trustpoint because they're subject to removal.
 There's a problem with the TLSSNI01 challenge. It's not one that will affect the
  security or quality of your certificates, nor put your machine at risk. Rather, 
 the problem is that some other device (not your ASA) could be tricked into 
-satisfying the challenge, which might lead to Let's Encrypt erroneously issuing
+satisfying an unwanted challenge, which might lead to Let's Encrypt erroneously issuing
 certificates for that device's domain. The only thing to worry about here is
 whether Let's Encrypt sunsets TLSSNI01 for TLSSNI02 before I get around to
 updating the plugin.
