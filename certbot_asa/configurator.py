@@ -236,6 +236,7 @@ class AsaConfigurator(common.Plugin):
             asa_dvsni.add_chall(achall, i)
         print ("3")
         cleanup_response = asa_dvsni.cleanup(list(self.asa.values()))
+        print ("4")
 
     def more_info(self):
         print ("begin more_info")
