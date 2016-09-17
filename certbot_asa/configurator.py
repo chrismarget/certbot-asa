@@ -27,6 +27,7 @@ class AsaConfigurator(common.Plugin):
 
     @classmethod
     def add_parser_arguments(cls, add):
+        print ("begin add_parser_arguments")
         add("host", help="ASA host", action='append', default=[])
         add("chost", help="ASA challenge host, specify multiple times", action='append', default=[])
         add("credfile", help="ASA credentials file, defaults to <config-dir>/asa_creds.txt")
@@ -37,6 +38,7 @@ class AsaConfigurator(common.Plugin):
 
 
     def __init__(self, *args, **kwargs):
+        print ("begin __init__")
         """Initialize an ASA Authenticator."""
         super(AsaConfigurator, self).__init__(*args, **kwargs)
 
@@ -60,6 +62,7 @@ class AsaConfigurator(common.Plugin):
 
     # This is called in determine_authenticator and determine_installer
     def prepare(self):
+        print ("begin prepare")
         import os
         import stat
         """Prepare the authenticator/installer."""
@@ -158,6 +161,7 @@ class AsaConfigurator(common.Plugin):
         pass
 
     def get_chall_pref(self, domain):
+        print ("begin get_chall_pref")
         """Return list of challenge preferences.
 
         :param str domain: Domain for which challenge preferences are sought.
@@ -172,6 +176,7 @@ class AsaConfigurator(common.Plugin):
         return [challenges.TLSSNI01]
 
     def perform(self, achalls):
+        print ("begin perform")
         """Perform the given challenge.
 
         :param list achalls: Non-empty (guaranteed) list of
@@ -214,6 +219,7 @@ class AsaConfigurator(common.Plugin):
         return responses
 
     def cleanup(self, achalls):
+        print ("begin cleanup")
         """Revert changes and shutdown after challenges complete.
 
         :param list achalls: Non-empty (guaranteed) list of
@@ -229,6 +235,7 @@ class AsaConfigurator(common.Plugin):
         cleanup_response = asa_dvsni.cleanup(list(self.asa.values()))
 
     def more_info(self):
+        print ("begin more_info")
         """Human-readable string to help understand the module"""
         return (
             "Plugin responds to DVSNI01 challenges with, and installs "
@@ -246,6 +253,7 @@ class AsaConfigurator(common.Plugin):
             'No ability to preview configs')
 
     def deploy_cert(self, domain, cert_path, key_path, chain_path=None, fullchain_path=None):
+        print("begin deploy_cert")
         """Initialize deploy certificate in ASA via REST API."""
         import base64
         import pki
