@@ -27,6 +27,3 @@ setup(
         ],
     },
 )
-
-#    package_dir = {'':'certbot_asa'},
-#    packages=find_packages('certbot_asa'),
