@@ -1,12 +1,13 @@
 from setuptools import setup
 from setuptools import find_packages
 
-version = '0.1.5'
+version = '0.1.7'
 
 install_requires = [
     'acme',
     'certbot>=0.7.0',
     'pem',
+    'requests>=2.11.1',
     'zope.interface',
 ]
 
