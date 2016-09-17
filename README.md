@@ -94,7 +94,7 @@ If you got back the JSON blob with your ASA's serial number, then the API is wor
 
 ### Enable TLS for the management connection
 
-The objective here is for your Linux host to trust the certificate presented by the when we're talking to the REST API. Generating a self-signed certificate on the ASA is pretty straightforward:
+The objective here is for your Linux host to trust the certificate presented by the ASA when we're talking to the REST API. Generating a self-signed certificate on the ASA is pretty straightforward:
 
 ```
 crypto key generate rsa label mgmt-tls-2048-bit-key modulus 2048
