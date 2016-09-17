@@ -7,7 +7,7 @@ install_requires = [
     'acme',
     'certbot>=0.7.0',
     'pem',
-    'requests>=2.11.1',
+    'requests>=2.9.0',
     'zope.interface',
 ]
 
