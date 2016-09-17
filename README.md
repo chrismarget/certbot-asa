@@ -168,9 +168,9 @@ $ sudo rm -rf /tmp/certbot-conf /tmp/certbot-work /tmp/certbot-logs
 
 We need requests [2.9.0](https://github.com/kennethreitz/requests/blob/master/HISTORY.rst#290-2015-12-15) or later for sensible certificate validation.
 
-'''
+```
 sudo pip install 'requests>=2.9.0'
-'''
+```
 
 The plugin can run without any privilege, so I like to create a non-root user for that purpose:
 
@@ -205,14 +205,14 @@ sudo c_rehash /etc/pki/tls/certs
 ```
 
 The plugin needs your ASA credentials. It expects to find them in a file
-named asa_creds.txt in certbot's config-dir. The file must be chmod go-rwx.
+named asa_creds.txt in certbot's config-dir. The file must be `chmod go-rwx` for the plugin to accept it.
 One line per ASA with the following fields, delimited by ';' characters.
 
 * hostname
 * username
 * password
 
-The hostname must be the 'management name' we used when setting up the
+The hostname must match the 'management name' we used when setting up the
 management TLS certificate. 
 
 ```
