@@ -212,8 +212,8 @@ $ echo "asa-mgmt;username;password" | sudo tee -a /etc/letsencrypt/asa_creds.txt
 Create a certbot configuration file:
 
 ```
-$ sudo su certbot-asa -c '(umask 0077; touch /etc/letsencrypt/certbot.conf)'
-$ sudo tee -a /etc/letsencrypt/certbot.conf <<< "$(cat << EOF
+$ sudo su certbot-asa -c '(umask 0077; touch /etc/letsencrypt/cli.ini)'
+$ sudo tee -a /etc/letsencrypt/cli.ini <<< "$(cat << EOF
 server = https://acme-staging.api.letsencrypt.org/directory
 email = somebody@somewhere.com
 text = True
@@ -232,6 +232,7 @@ We're going to get a certificate for asa.company.com installed onto the box we c
 certbot -a certbot-asa:asa -d asa.company.com -c /etc/letsencrypt/certbot.conf --certbot-asa:asa-host asa-mgmt --certbot-asa:asa-castore /etc/pki/tls/certs
 sudo su certbot-asa -c '
 certbot -a certbot-asa:asa -d one.mlvpn.xyz -c /etc/letsencrypt/certbot.conf --certbot-asa:asa-host asa-mgmt --certbot-asa:asa-castore /etc/pki/tls/certs
+certbot -a certbot-asa:asa -d one.mlvpn.xyz --certbot-asa:asa-host asa-mgmt --certbot-asa:asa-castore /etc/pki/tls/certs
 '
 ```
 
