@@ -31,7 +31,6 @@ class AsaConfigurator(common.Plugin):
         add("chost", help="ASA challenge host, specify multiple times", action='append', default=[])
         add("credfile", help="ASA credentials file, defaults to <config-dir>/asa_creds.txt")
         add("creddelim", help="ASA credentials file delimiter", default=';')
-        add("interface", help="Attach new certificate to interface, rather than domain")
         add("ignore_cert", help="Ignore SSL errors when making REST calls to managed ASA boxes", default=False, action='store_true')
         add("castore", help="Bundle of PEM-formatted trusted certificates or c_rehash'ed directory")
 

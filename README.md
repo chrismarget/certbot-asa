@@ -172,13 +172,23 @@ We need requests [2.9.0](https://github.com/kennethreitz/requests/blob/master/HI
 $ sudo pip install 'requests>=2.9.0'
 ```
 
+We previously dumped the ASA's self-signed certificate into a file in `/etc/pki/tls/certs`.
+The python `requests` module only allows us to specify a single pointer for trusted root
+certificates. We could point at the file, but it's nice to point at the directory instead.
+`c_rehash` makes that possible by filling the directory with symlink pointers which help
+the requests module find its way:
+
+```
+$ sudo c_rehash /etc/pki/tls/certs
+```
+
 The plugin can run without any privilege, so I like to create a non-root user for that purpose:
 
 ```
 $ sudo useradd -r certbot-asa
 ```
 
-Next, give the letsencrypt config, work and log directories to the new user.
+Next, give the letsencrypt `config`, `work` and `log` directories to the new user.
 
 ```
 $ sudo mkdir -pm 0700 /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
@@ -194,26 +204,17 @@ $ (cd /tmp/certbot-asa; sudo python /tmp/certbot-asa/setup.py install)
 
 #### Configure the plugin
 
-We previously dumped the ASA's self-signed certificate into a file in `/etc/pki/tls/certs`.
-The python `requests` module only allows us to specify a single pointer for trusted root
-certificates. We could point at the file, but it's nice to point at the directory instead.
-`c_rehash` makes that possible by filling the directory with symlink pointers which help
-the requests module find its way:
-
-```
-$ sudo c_rehash /etc/pki/tls/certs
-```
-
 The plugin needs your ASA credentials. It expects to find them in a file
 named asa_creds.txt in certbot's config-dir. The file must be `chmod go-rwx` for the plugin to accept it.
 One line per ASA with the following fields, delimited by ';' characters.
 
-* hostname
-* username
-* password
+```
+hostname;username;password
+```
 
 The hostname must match the *management name* we used when setting up the
-management TLS certificate. 
+management TLS certificate. It's okay if there's a ';' character embedded in
+the password. Create the credentials file:
 
 ```
 $ sudo su certbot-asa -c '(umask 0077; touch /etc/letsencrypt/asa_creds.txt)'
@@ -237,10 +238,10 @@ EOF
 
 ## Run the plugin!
 
-We're going to get a certificate for asa.company.com installed onto the box we call asa-mgmt
+We're going to get a certificate for `asa.company.com` installed onto the box we call `asa-mgmt`. Run this as the `certbot-asa` user:
 
 ```
-sudo su certbot-asa -c 'certbot -a certbot-asa:asa -d asa.company.com --certbot-asa:asa-host asa-mgmt --certbot-asa:asa-castore /etc/pki/tls/certs'
+certbot -a certbot-asa:asa -d asa.company.com --certbot-asa:asa-host asa-mgmt --certbot-asa:asa-castore /etc/pki/tls/certs
 ```
 
 If everything went well, there should be at least one new trustpoint on the ASA named `LE_cert_<hash>_<date>_to_<date>`.
@@ -254,6 +255,38 @@ the configuration file. Comment out that line in the config file to hit the prod
 There are a number of command line options supported by the plugin. They all take the form:
 --`plugin_name`:`entry_point`-`option`. Yes, it's a little clunky on the command line. So the
 *host* option (specifies ASA box(es) that should do challenges and receive certificates) is specified as: `--certbot-asa:asa-host <somehost>`
+
+```
+  --certbot-asa:asa-host <host>
+           Mandatory.
+           Specify an ASA to be used for both domain validation (TLS challenges)
+           and for installation of the resulting certificate. Can be specified
+           multiple times.
+  --certbot-asa:asa-chost <host>
+           Optional.
+           Specify an ASA to be used as a Challenge-only host. This box will not
+           receive a live certificate, but will participate in domain validation
+           challenges. Useful for a load-balanced ASA pool where you want ASA#1
+           to have a certificate for "vpn" and "vpn1", ASA#2 to have a
+           certificate for "vpn" and "vpn2", etc...
+  --certbot-asa:asa-credfile <file>
+           Optional.
+           Specify the location of the ASA credentials file. Defaults to
+           <config- dir>/asa_creds.txt
+  --certbot-asa:asa-creddelim CERTBOT_ASA:ASA_CREDDELIM
+           Optional.
+           ASA credentials file delimiter (default: ;)
+           Useful if your username has ';' embedded in it.
+  --certbot-asa:asa-interface CERTBOT_ASA:ASA_INTERFACE
+                        Attach new certificate to interface, rather than
+                        domain (default: None)
+  --certbot-asa:asa-ignore_cert
+                        Ignore SSL errors when making REST calls to managed
+                        ASA boxes (default: False)
+  --certbot-asa:asa-castore CERTBOT_ASA:ASA_CASTORE
+                        Bundle of PEM-formatted trusted certificates or
+                        c_rehash'ed directory (default: None)
+```
 
 ## Caveats
 
