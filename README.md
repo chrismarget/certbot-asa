@@ -240,19 +240,20 @@ EOF
 We're going to get a certificate for asa.company.com installed onto the box we call asa-mgmt
 
 ```
-certbot -a certbot-asa:asa -d asa.company.com -c /etc/letsencrypt/certbot.conf --certbot-asa:asa-host asa-mgmt --certbot-asa:asa-castore /etc/pki/tls/certs
-sudo su certbot-asa -c '
-certbot -a certbot-asa:asa -d one.mlvpn.xyz -c /etc/letsencrypt/certbot.conf --certbot-asa:asa-host asa-mgmt --certbot-asa:asa-castore /etc/pki/tls/certs
-certbot -a certbot-asa:asa -d one.mlvpn.xyz --certbot-asa:asa-host asa-mgmt --certbot-asa:asa-castore /etc/pki/tls/certs
-'
+sudo su certbot-asa -c 'certbot -a certbot-asa:asa -d asa.company.com --certbot-asa:asa-host asa-mgmt --certbot-asa:asa-castore /etc/pki/tls/certs'
 ```
 
-
-
+If everything went well, there should be at least one new trustpoint on the ASA named `LE_cert_<hash>_<date>_to_<date>`.
+That's the new certificate. It should have a matching RSA keypair. There's also probably at least one chain certificate named
+`LE_Chain_<hash>_expires_<date>`. Note that these are *test certificates* issued by the `acme-staging` server referenced in
+the configuration file. Comment out that line in the config file to hit the production service that issues trusted certificates.
 
 
 ## Command Line Options
-Command line usage
+
+There are a number of command line options supported by the plugin. They all take the form:
+--`plugin_name`:`entry_point`-`option`. Yes, it's a little clunky on the command line. So the
+*host* option (specifies ASA box(es) that should do challenges and receive certificates) is specified as: `--certbot-asa:asa-host <somehost>`
 
 ## Caveats
 

@@ -310,7 +310,7 @@ class AsaConfigurator(common.Plugin):
                    cert_hash_string += '/'
                    cert_hash_string += '%x' % cert.get_serial_number()
                    cert_hash = hashlib.md5(cert_hash_string).hexdigest()
-                   trustpoint_name = '_'.join(['LE_CA',cert_hash,'expires',cert.get_notAfter()[:8]])
+                   trustpoint_name = '_'.join(['LE_Chain',cert_hash,'expires',cert.get_notAfter()[:8]])
                    cert_pem_string = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
                    self.asa[h].import_ca_cert(trustpoint_name, cert_pem_string)
 
@@ -335,7 +335,7 @@ class AsaConfigurator(common.Plugin):
 
     def save(self, title=None, temporary=False):
         """Save ASA configuration."""
-        leCaRegex = '^LE_CA_[a-z0-9]{32}_expires_[0-9]{8}$'
+        leCaRegex = '^LE_Chain_[a-z0-9]{32}_expires_[0-9]{8}$'
         leIdentityRegex = '^LE_cert_[a-z0-9]{32}_[0-9]{8}_to_[0-9]{8}$'
         if title == "Deployed ACME Certificate":
             for h in self.conf('host'):
