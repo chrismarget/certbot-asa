@@ -273,19 +273,19 @@ There are a number of command line options supported by the plugin. They all tak
            Optional.
            Specify the location of the ASA credentials file. Defaults to
            <config- dir>/asa_creds.txt
-  --certbot-asa:asa-creddelim CERTBOT_ASA:ASA_CREDDELIM
+  --certbot-asa:asa-creddelim <string>
            Optional.
-           ASA credentials file delimiter (default: ;)
+           ASA credentials file delimiter (default: ';')
            Useful if your username has ';' embedded in it.
-  --certbot-asa:asa-interface CERTBOT_ASA:ASA_INTERFACE
-                        Attach new certificate to interface, rather than
-                        domain (default: None)
   --certbot-asa:asa-ignore_cert
-                        Ignore SSL errors when making REST calls to managed
-                        ASA boxes (default: False)
-  --certbot-asa:asa-castore CERTBOT_ASA:ASA_CASTORE
-                        Bundle of PEM-formatted trusted certificates or
-                        c_rehash'ed directory (default: None)
+           Optional.
+           Just don't use this. Seriously.
+  --certbot-asa:asa-castore <path>
+           Optional.
+           Path to a bundle of PEM-formatted trusted certificates (one file) or
+           a c_rehash'ed directory of those files. Pretty much a required option
+           because the 'requests' module carries its own trust store, disregards
+           the system provided CAs.
 ```
 
 ## Caveats
