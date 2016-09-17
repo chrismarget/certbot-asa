@@ -230,8 +230,11 @@ class AsaConfigurator(common.Plugin):
 
         """
         asa_dvsni = dvsni.AsaDvsni(self)
+        print ("1")
         for i, achall in enumerate(achalls):
+            print ("2")
             asa_dvsni.add_chall(achall, i)
+        print ("3")
         cleanup_response = asa_dvsni.cleanup(list(self.asa.values()))
 
     def more_info(self):
