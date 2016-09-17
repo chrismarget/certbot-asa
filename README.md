@@ -201,7 +201,7 @@ certificates. We could point at the file, but it's nice to point at the director
 the requests module find its way:
 
 ```
-sudo c_rehash /etc/pki/tls/certs
+$ sudo c_rehash /etc/pki/tls/certs
 ```
 
 The plugin needs your ASA credentials. It expects to find them in a file
@@ -212,7 +212,7 @@ One line per ASA with the following fields, delimited by ';' characters.
 * username
 * password
 
-The hostname must match the 'management name' we used when setting up the
+The hostname must match the *management name* we used when setting up the
 management TLS certificate. 
 
 ```
