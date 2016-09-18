@@ -220,7 +220,9 @@ the password. Create the credentials file:
 
 ```
 $ sudo su certbot-asa -c '(umask 0077; touch /etc/letsencrypt/asa_creds.txt)'
+$ set +o history
 $ echo "asa-mgmt;username;password" | sudo tee -a /etc/letsencrypt/asa_creds.txt
+$ set -o history
 ```
 
 Create a certbot configuration file:
