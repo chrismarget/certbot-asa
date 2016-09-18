@@ -86,8 +86,10 @@ Now we'll be putting some of those building blocks together. We're testing:
 * The API configuration
 
 ```
+$ set +o history
 $ curl -ksu <username>:<password> https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'
 {"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}
+$ set -o history
 ```
 
 If you got back the JSON blob with your ASA's serial number, then the API is working!
@@ -125,8 +127,10 @@ $ openssl x509 -in /etc/pki/tls/certs/asa-mgmt.pem -noout -text
 Test the API again, but this time with certificate validation:
 
 ```
+$ set +o history
 $ curl -su <username>:<password> --cacert /etc/pki/tls/certs/asa-mgmt.pem https://asa-mgmt/api/monitoring/serialnumber | sed 'a\'
 {"kind":"object#QuerySerialNumber","serialNumber":"XXXXXXXXXX"}
+$ set -o history
 ```
 
 If we got the serial number back *without* using the `-k` (don't verify certificates) option, then TLS validation checks out. Let's move on to installing certbot.
