@@ -212,7 +212,7 @@ $ sudo chown certbot-asa:certbot-asa /etc/letsencrypt /var/lib/letsencrypt /var/
 #### Download and install the plugin:
 
 ```
-$ git clone https://chrismarget:xxxxx@github.com/chrismarget/certbot-asa /tmp/certbot-asa
+$ git clone https://@github.com/chrismarget/certbot-asa /tmp/certbot-asa
 $ (cd /tmp/certbot-asa; sudo python /tmp/certbot-asa/setup.py install)
 ```
 
