@@ -145,7 +145,7 @@ $ sudo yum -y --enablerepo=epel install python-certbot-apache
 
 ### Optional: Test Certbot
 
-If the test machine is internet-facing with a DNS record pointing at it and has
+If the test machine is internet-facing, has a DNS record pointing at it and has
 TCP/443 exposed, then we can test `certbot` alone (without the ASA plugin.)
 While the `certbot-asa` plugin doesn't require any privilege on the Linux host,
 running `certbot` in standalone mode requires root access because the `boulder`
