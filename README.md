@@ -143,7 +143,15 @@ $ sudo yum-config-manager --disable epel
 $ sudo yum -y --enablerepo=epel install python-certbot-apache
 ```
 
-If the test machine is internet-facing with a DNS record pointing at it and has TCP/443 exposed, then we can test `certbot` without the ASA plugin. Doing so requires root privilege because the `boulder` (Let's Encrypt's CA component) validation bits connect to us on a privileged port. Running `certbot` with the `certbot-asa` plugin does not require root privilege. So, let's test it out as root if that's interesting/possible:
+### Optional: Test Certbot
+
+If the test machine is internet-facing with a DNS record pointing at it and has
+TCP/443 exposed, then we can test `certbot` alone (without the ASA plugin.)
+While the `certbot-asa` plugin doesn't require any privilege on the Linux host,
+running `certbot` in standalone mode requires root access because the `boulder`
+(Let's Encrypt's CA component) validation bits connect to us on a privileged
+port.  Here's how to test `certbot` as root (provided that it's interesting and
+possible to do so):
 
 ```
 # Open up incoming connections in iptables:
