@@ -1,5 +1,11 @@
 # Cisco ASA plugin for Let's Encrypt client
 
+# This project is obsolete since Let's Encrypt killed the TLS-SNI-01 challenge:
+
+https://community.letsencrypt.org/t/2018-01-11-update-regarding-acme-tls-sni-and-shared-hosting-infrastructure/50188
+
+# Do Not Use
+
 This is a plugin for the [Certbot](https://github.com/certbot/certbot) client from [Let's Encrypt](https://letsencrypt.org).
 
 It answers TLSSNI01 challenges using Cisco ASA boxes and installs the resulting certificates onto the ASAs. Both operations leverage the [Cisco ASA REST API](http://www.cisco.com/c/en/us/td/docs/security/asa/api/qsg-asa-api.html).
